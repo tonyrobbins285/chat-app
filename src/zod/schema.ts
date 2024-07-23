@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { strongPasswordRegex } from "@/regex/password";
 
-export const RegisterSchema = z.object({
+export const SignUpSchema = z.object({
   email: z
     .string()
     .min(1, { message: "Email address is required." })
@@ -20,7 +20,7 @@ export const RegisterSchema = z.object({
     }),
 });
 
-export const LoginSchema = z.object({
+export const SignInSchema = z.object({
   email: z
     .string()
     .min(1, { message: "Email address is required." })

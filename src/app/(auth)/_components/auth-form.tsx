@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,32 +13,28 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { RegisterSchema } from "@/zod/schema";
+import { SignUpSchema } from "@/zod/schema";
 import { cn } from "@/lib/utils";
-import PasswordField from "@/components/form-password";
-import { signIn } from "@/auth";
-import { login } from "@/actions/login";
+import FormPassword from "./form-password";
+import { AuthFormType } from "@/zod/types";
 
-type FormType = typeof RegisterSchema;
-
-type AuthFormType = {
-  variant: "Login" | "Register";
+export type AuthFormProps = {
+  variant: "SignIn" | "SignUp";
 };
 
-export default function AuthForm({ variant }: AuthFormType) {
-  const form = useForm<z.infer<FormType>>({
+export default function AuthForm({ variant }: AuthFormProps) {
+  const form = useForm<AuthFormType>({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
-    resolver: zodResolver(RegisterSchema),
+    resolver: zodResolver(SignUpSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const onSubmit = async (values: z.infer<FormType>) => {
-    if (variant === "Login") {
-      await login(values);
+  const onSubmit = async (values: AuthFormType) => {
+    if (variant === "SignIn") {
     }
     console.log(values);
   };
@@ -82,7 +77,7 @@ export default function AuthForm({ variant }: AuthFormType) {
             </FormItem>
           )}
         />
-        <PasswordField variant={variant} />
+        <FormPassword variant={variant} />
 
         <Button
           disabled={form.formState.isSubmitting}

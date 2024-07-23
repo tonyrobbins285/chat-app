@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Github } from "lucide-react";
-import AuthForm from "@/components/auth-form";
 import type { Metadata } from "next";
+import AuthForm from "../_components/auth-form";
 
 export const metadata: Metadata = {
   title: "Register",
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function RegisterPage() {
   return (
-    <>
+    <div className="w-full max-w-md space-y-8 bg-white px-10 py-8 shadow-md">
       {/* Title */}
       <div>
         <div>
@@ -35,14 +35,14 @@ export default function RegisterPage() {
           <p className="text-sm">
             Already have an account?{" "}
             <Link
-              href="/login"
+              href="/sign-in"
               className="text-blue-700 hover:underline hover:underline-offset-2"
             >
               Sign in
             </Link>
           </p>
         </div>
-        <AuthForm variant="Register" />
+        <AuthForm variant="SignUp" />
       </div>
 
       {/* Seperator */}
@@ -64,6 +64,6 @@ export default function RegisterPage() {
           <Facebook size={30} />
         </div>
       </div>
-    </>
+    </div>
   );
 }

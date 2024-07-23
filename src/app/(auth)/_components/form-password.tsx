@@ -13,15 +13,12 @@ import {
   oneDigitRegex,
 } from "@/regex/password";
 import { Eye, EyeOff } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import FormPasswordRequirementIndicator from "./form-password-requirement-indicator";
+import { AuthFormProps } from "./auth-form";
 
-type PasswordFieldType = {
-  variant: "Login" | "Register";
-};
-
-export default function FormPassword({ variant }: PasswordFieldType) {
+export default function FormPassword({ variant }: AuthFormProps) {
   const form = useFormContext();
   const [isShown, setIsShown] = useState(false);
 
@@ -57,7 +54,7 @@ export default function FormPassword({ variant }: PasswordFieldType) {
             <FormMessage className="text-xs" />
           </FormItem>
 
-          {variant === "Register" && (
+          {variant === "SignUp" && (
             <div className="space-y-2 text-xs text-primary">
               <p className="font-semibold">Create a password that:</p>
               <FormPasswordRequirementIndicator
