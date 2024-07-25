@@ -11,7 +11,6 @@ export const metadata: Metadata = {
 };
 
 export default function LoginPage() {
-  console.log("page");
   return (
     <div className="w-full max-w-md space-y-8 bg-white px-10 py-8 shadow-md">
       {/* Title */}
