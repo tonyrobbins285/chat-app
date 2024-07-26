@@ -1,18 +1,22 @@
 "use server";
 
-import {
-  authenticatedAction,
-  unauthenticatedAction,
-} from "@/lib/action-procudures";
+import { authAction, unauthAction } from "@/lib/safe-action";
 import { signUpUserUseCase } from "@/use-cases/users/sign-up";
 import { SignUpSchema } from "@/zod/schema";
 import { redirect } from "next/navigation";
-import { ZSAError } from "zsa";
 
-export const signUpAction = unauthenticatedAction
-  .input(SignUpSchema)
-  .handler(async ({ input }) => {
-    console.log(2);
-    signUpUserUseCase(input);
-    // return redirect("/");
+export const signUpAction = unauthAction
+  .schema(SignUpSchema)
+  .action(async ({ parsedInput }) => {
+    try {
+      signUpUserUseCase(parsedInput);
+      console.log(2);
+      return {
+        success: "Successfully logged in",
+      };
+    } catch (error) {
+      console.log("EORRRRO");
+      console.log(error);
+      return { failure: "Incorrect credentials" };
+    }
   });

@@ -10,9 +10,9 @@ export async function signUpUserUseCase(inputs: AuthFormType) {
   const existingUser = await getUserByEmail(email);
 
   if (existingUser) {
-    // throw "Used Email";
-    console.log("error");
-    return { error: "Email is in use" };
+    throw new Error("Used Email");
+    // console.log("error");
+    // return { error: "Email is in use" };
   }
 
   const user = await createUser(email);

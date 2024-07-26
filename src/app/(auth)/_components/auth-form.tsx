@@ -17,8 +17,8 @@ import { SignUpSchema } from "@/zod/schema";
 import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
 import { AuthFormType } from "@/zod/types";
-import { useServerAction } from "zsa-react";
 import { signUpAction } from "../sign-up/actions";
+import { useAction } from "next-safe-action/hooks";
 
 export type AuthFormProps = {
   variant: "SignIn" | "SignUp";
@@ -34,10 +34,13 @@ export default function AuthForm({ variant }: AuthFormProps) {
       password: "",
     },
   });
-  const { isPending, execute, data, error } = useServerAction(signUpAction, {
-    onError({ err }) {
-      console.log(3);
-      console.log(err.data);
+  const { isExecuting, execute, result, hasErrored } = useAction(signUpAction, {
+    onSuccess({ data }) {
+      console.log(data);
+    },
+    onError({ error }) {
+      console.log("ERORRRRR");
+      console.log(error);
     },
   });
 
@@ -86,7 +89,6 @@ export default function AuthForm({ variant }: AuthFormProps) {
           )}
         />
         <FormPassword variant={variant} />
-        <p>{error?.data}</p>
         <Button
           disabled={form.formState.isSubmitting}
           className="w-full bg-gradient-to-tr from-blue-400 to-blue-700 transition-colors duration-500 hover:from-blue-400 hover:to-transparent"
