@@ -10,17 +10,16 @@ export async function signUpUserUseCase(inputs: AuthFormType) {
   const existingUser = await getUserByEmail(email);
 
   if (existingUser) {
-    throw new Error("Used Email");
-    // console.log("error");
-    // return { error: "Email is in use" };
+    return { success: false, message: "Email is already in use." };
   }
 
   const user = await createUser(email);
+
   const accessToken = createAccessToken({ email, id: user.id });
   const refreshToken = createRefreshToken({ email, id: user.id });
   const hashedPassword = await createHashedPassword(password);
 
-  await createAccount({
+  const account = await createAccount({
     userId: user.id,
     access_token: accessToken,
     refresh_token: refreshToken,
@@ -34,5 +33,5 @@ export async function signUpUserUseCase(inputs: AuthFormType) {
   //   <VerifyEmail token={token} />
   // );
 
-  return { id: user.id };
+  return { success: true, data: account };
 }

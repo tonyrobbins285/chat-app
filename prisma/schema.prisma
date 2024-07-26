@@ -56,6 +56,21 @@ model Account {
   @@unique([provider, providerAccountId])
 }
 
+model EmailToken {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+}
+
+export const verifyEmailTokens = sqliteTable("verify_email_tokens", {
+id: integer("id", { mode: "number" }).primaryKey({ autoIncrement: true }),
+userId: integer("user_id", { mode: "number" })
+.references(() => users.id, { onDelete: "cascade" })
+.unique()
+.notNull(),
+token: text("token"),
+tokenExpiresAt: integer("token_expires_at", { mode: "timestamp" }).notNull(),
+});
+
 model Conversation {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   name          String?

@@ -6,7 +6,13 @@ export const createAccount = async (data: {
   refresh_token: string;
   hashedPassword: string;
 }) => {
-  await prisma.account.create({
+  const account = await prisma.account.create({
     data: { ...data, type: "credentials" },
+    select: {
+      refresh_token: true,
+      access_token: true,
+    },
   });
+
+  return account;
 };
