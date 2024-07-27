@@ -1,6 +1,5 @@
 "use server";
 
-import { authAction, unauthAction } from "@/lib/safe-action";
 import { signUpUserUseCase } from "@/use-cases/users/sign-up";
 import { SignUpSchema } from "@/zod/schema";
 import { revalidatePath } from "next/cache";
@@ -30,7 +29,7 @@ export const signUpAction = async (inputs: z.infer<typeof SignUpSchema>) => {
     if (!user.success) {
       return user;
     }
-    
+
     return redirect("/");
   } catch (error) {
     console.log("Error: signUpAction");
