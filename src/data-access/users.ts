@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { TransactionType } from "./utils";
 
 export const getUserByEmail = async (email: string) => {
   const user = await prisma.user.findFirst({
@@ -10,8 +11,11 @@ export const getUserByEmail = async (email: string) => {
   return user;
 };
 
-export const createUser = async (email: string) => {
-  const user = await prisma.user.create({
+export const createUser = async (
+  email: string,
+  tx: TransactionType = prisma,
+) => {
+  const user = await tx.user.create({
     data: {
       email,
     },

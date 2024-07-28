@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
 import { AuthFormType } from "@/zod/types";
 import { signUpAction } from "../sign-up/actions";
-import { useAction } from "next-safe-action/hooks";
 
 export type AuthFormProps = {
   variant: "SignIn" | "SignUp";
@@ -34,20 +33,12 @@ export default function AuthForm({ variant }: AuthFormProps) {
       password: "",
     },
   });
-  const { isExecuting, execute, result, hasErrored } = useAction(signUpAction, {
-    onSuccess({ data }) {
-      console.log(data);
-    },
-    onError({ error }) {
-      console.log("ERORRRRR");
-      console.log(error);
-    },
-  });
 
   const onSubmit = async (values: AuthFormType) => {
     if (variant === "SignIn") {
     }
-    execute(values);
+    const res = await signUpAction(values);
+    console.log(res);
   };
 
   return (

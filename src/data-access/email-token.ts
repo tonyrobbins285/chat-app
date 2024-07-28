@@ -1,24 +1,35 @@
 import { prisma } from "@/lib/prisma";
-import crypto from "crypto";
+import { generateUUID } from "@/lib/utils";
+import { TransactionType } from "./utils";
 
 const TOKEN_TTL = 5 * 60 * 1000;
 
-export const createVerifyEmailToken = async (userId: string) => {
-  const token = crypto.randomBytes(128).toString("hex");
+export const createVerifyEmailToken = async (
+  userId: string,
+  tx: TransactionType = prisma,
+) => {
+  // Generate random token and expiry date
   const tokenExpiresAt = new Date(Date.now() + TOKEN_TTL);
 
-  await prisma.emailVerificationToken.upsert({
+  const token = await tx.emailVerificationToken.findFirst({
     where: { userId },
-    create: {
+  });
+
+  if (token) {
+    await tx.emailVerificationToken.delete({
+      where: {
+        userId,
+      },
+    });
+  }
+
+  const verificationToken = await tx.emailVerificationToken.create({
+    data: {
       userId,
-      token,
-      tokenExpiresAt,
-    },
-    update: {
-      token,
+      token: generateUUID(),
       tokenExpiresAt,
     },
   });
 
-  return { token };
+  return { verificationToken };
 };
