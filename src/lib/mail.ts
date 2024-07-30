@@ -11,7 +11,6 @@ export async function sendEmail({
   html: string;
 }) {
   try {
-    // create transporter object
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST as string,
       port: Number(process.env.EMAIL_PORT),

@@ -8,7 +8,6 @@ export const createVerifyEmailToken = async (
   userId: string,
   tx: TransactionType = prisma,
 ) => {
-  // Generate random token and expiry date
   const tokenExpiresAt = new Date(Date.now() + TOKEN_TTL);
 
   const token = await tx.emailVerificationToken.findFirst({

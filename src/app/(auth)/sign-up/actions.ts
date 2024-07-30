@@ -17,6 +17,6 @@ export const signUpAction = handleAsyncAction(
 
     await signUpUserUseCase(validatedInputes.data);
 
-    redirect("/");
+    return {};
   },
 );

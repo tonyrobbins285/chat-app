@@ -11,6 +11,7 @@ import { createTransaction } from "@/data-access/utils";
 
 export async function signUpUserUseCase(inputs: AuthFormType) {
   const { email, password } = inputs;
+
   const existingUser = await getUserByEmail(email);
 
   if (existingUser) {
@@ -40,7 +41,6 @@ export async function signUpUserUseCase(inputs: AuthFormType) {
   });
 
   return {
-    message: "Email verification was sent.",
-    data: { email },
+    message: `Email verification was sent to ${email}`,
   };
 }
