@@ -4,7 +4,6 @@ import { InputValidationError } from "@/lib/errors";
 import { handleAsyncAction } from "@/lib/handle-async-action";
 import { signUpUserUseCase } from "@/use-cases/user/sign-up";
 import { SignUpSchema } from "@/zod/schema";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 export const signUpAction = handleAsyncAction(
@@ -15,8 +14,8 @@ export const signUpAction = handleAsyncAction(
       throw new InputValidationError();
     }
 
-    await signUpUserUseCase(validatedInputes.data);
+    const result = await signUpUserUseCase(validatedInputes.data);
 
-    return {};
+    return result;
   },
 );

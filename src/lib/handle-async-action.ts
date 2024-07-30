@@ -1,19 +1,23 @@
 import "server-only";
 
-import { redirect } from "next/navigation";
 import { PublicError } from "./errors";
 import { isRedirectError } from "next/dist/client/components/redirect";
 
-type AsyncActionFunction<T> = (
-  inputs: T,
-) => Promise<Record<string, string | boolean>>;
+type AsyncActionFunction<T> = (inputs: T) => Promise<
+  Partial<{
+    message: string;
+    name: string;
+    data: Record<string, string>;
+  }>
+>;
 
 export const handleAsyncAction =
   <T>(fn: AsyncActionFunction<T>, errorFile?: string) =>
   async (inputs: T) => {
     try {
-      await fn(inputs);
-      redirect("/");
+      const result = await fn(inputs);
+
+      return { ...result, success: true };
     } catch (error) {
       const errorObj = {
         success: false,

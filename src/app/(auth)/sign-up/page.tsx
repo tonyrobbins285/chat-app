@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Github } from "lucide-react";
 import type { Metadata } from "next";
-import AuthForm from "../_components/auth-form";
+import SignUpForm from "./components/sign-up-form";
 
 export const metadata: Metadata = {
   title: "Register",
@@ -42,7 +42,7 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
-        <AuthForm variant="SignUp" />
+        <SignUpForm />
       </div>
 
       {/* Seperator */}
