@@ -26,3 +26,10 @@ export const createUser = async (
   });
   return user;
 };
+
+export const updateUserVerification = async (id: string) => {
+  await prisma.user.update({
+    where: { id },
+    data: { emailVerified: new Date() },
+  });
+};

@@ -32,3 +32,17 @@ export const createVerifyEmailToken = async (
 
   return { verificationToken };
 };
+
+export const getVerifyEmailToken = async (token: string) => {
+  const existingToken = await prisma.emailVerificationToken.findUnique({
+    where: {
+      token,
+    },
+  });
+
+  return existingToken;
+};
+
+export const deleteVerifyEmailToken = async (token: string) => {
+  await prisma.emailVerificationToken.delete({ where: { token } });
+};

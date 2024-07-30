@@ -4,10 +4,10 @@ import { createAccount } from "@/data-access/accounts";
 import { createUser, getUserByEmail } from "@/data-access/users";
 import { createHashedPassword } from "@/lib/utils";
 import { AuthFormType } from "@/zod/types";
-import { createVerifyEmailToken } from "@/data-access/email-token";
 import { sendEmail } from "@/lib/mail";
 import { EmailInUseError } from "@/lib/errors";
 import { createTransaction } from "@/data-access/utils";
+import { createVerifyEmailToken } from "@/data-access/email-verification-token";
 
 export async function signUpUserUseCase(inputs: AuthFormType) {
   const { email, password } = inputs;

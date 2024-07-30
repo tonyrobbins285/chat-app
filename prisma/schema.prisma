@@ -59,7 +59,7 @@ model Account {
 
 model EmailVerificationToken {
   id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  token          String
+  token          String   @unique
   tokenExpiresAt DateTime
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
