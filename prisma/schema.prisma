@@ -14,14 +14,15 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-
-  emailToken EmailVerificationToken?
-
-  github_id Int? @unique
+  id                String                  @id @default(auto()) @map("_id") @db.ObjectId
+  name              String?
+  image             String?
+  email             String?                 @unique
+  emailVerified     DateTime?
+  emailToken        EmailVerificationToken?
+  type              String
+  provider          String?
+  providerAccountId String?
 
   conversations   Conversation[] @relation(fields: [conversationIds], references: [id])
   conversationIds String[]       @db.ObjectId
@@ -34,8 +35,6 @@ model User {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([email])
 }
 
 model Session {
