@@ -14,12 +14,14 @@ datasource db {
 }
 
 model User {
-  id            String                  @id @default(auto()) @map("_id") @db.ObjectId
-  name          String?
-  email         String?                 @unique
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
-  emailToken    EmailVerificationToken?
+
+  emailToken EmailVerificationToken?
+
+  github_id Int? @unique
 
   conversations   Conversation[] @relation(fields: [conversationIds], references: [id])
   conversationIds String[]       @db.ObjectId
@@ -28,33 +30,20 @@ model User {
   seenMessageIds String[]  @db.ObjectId
 
   messages Message[]
-  accounts Account[]
+  sessions Session[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@unique([email])
 }
 
-model Account {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
-  type              String
-  provider          String?
-  providerAccountId String?
-  refresh_token     String? @db.String
-  access_token      String? @db.String
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.String
-  session_state     String?
-  hashedPassword    String?
+model Session {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  expiresAt DateTime
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @db.ObjectId
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([provider, providerAccountId])
+  user User @relation(references: [id], fields: [userId], onDelete: Cascade)
 }
 
 model EmailVerificationToken {
