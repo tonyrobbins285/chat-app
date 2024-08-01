@@ -2,17 +2,9 @@ import { prisma } from "@/lib/prisma";
 import { TransactionType } from "./utils";
 
 export const getUserByEmail = async (email: string) => {
-  return await prisma.user.findFirst({
-    where: {
-      email,
-    },
-  });
-};
-
-export const getUserByGithubId = async (githubId: string) => {
   return await prisma.user.findUnique({
     where: {
-      github_id: Number(githubId),
+      email,
     },
   });
 };
@@ -24,10 +16,6 @@ export const createUser = async (
   return await tx.user.create({
     data: {
       email,
-    },
-    select: {
-      id: true,
-      email: true,
     },
   });
 };

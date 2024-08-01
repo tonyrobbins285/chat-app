@@ -3,9 +3,9 @@ import { OAuth2RequestError } from "arctic";
 import { createGithubUserUseCase } from "@/use-cases/users";
 import { getAccountByGithubIdUseCase } from "@/use-cases/accounts";
 import { github } from "@/lib/auth";
-import { afterLoginUrl } from "@/app-config";
 import { setSession } from "@/lib/session";
 import { getUserByGithubId } from "@/data-access/users";
+import { getAccountByGithubId } from "@/data-access/accounts";
 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -21,21 +21,35 @@ export async function GET(request: Request): Promise<Response> {
 
   try {
     const tokens = await github.validateAuthorizationCode(code);
+    const accessToken = tokens.accessToken();
+    const accessTokenExpiresAt = tokens.accessTokenExpiresAt();
+    const refreshToken = tokens.refreshToken();
+    const refreshTokenExpiresAt = tokens.refreshTokenExpiresAt();
+    const idToken = tokens.idToken();
+
     const githubUserResponse = await fetch("https://api.github.com/user", {
       headers: {
-        Authorization: `Bearer ${tokens.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
       },
     });
+    const githubEmailResponse = await fetch(
+      "https://api.github.com/user/emails",
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
     const githubUser: GitHubUser = await githubUserResponse.json();
-
-    const existingAccount = await getUserByGithubId(githubUser.id);
+    const githubEmail: GitHubEmail = await githubEmailResponse.json();
+    const existingAccount = await getAccountByGithubId(githubUser.id);
 
     if (existingAccount) {
       await setSession(existingAccount.userId);
       return new Response(null, {
         status: 302,
         headers: {
-          Location: afterLoginUrl,
+          Location: process.env.AFTER_LOGIN_URL!,
         },
       });
     }
@@ -59,12 +73,17 @@ export async function GET(request: Request): Promise<Response> {
     return new Response(null, {
       status: 302,
       headers: {
-        Location: afterLoginUrl,
+        Location: process.env.AFTER_LOGIN_URL!,
       },
     });
   } catch (e) {
     console.error(e);
-    // the specific error message depends on the provider
+    if (e instanceof OAuth2RequestError) {
+      // Invalid authorization code, credentials, or redirect URI
+      return new Response(null, {
+        status: 400,
+      });
+    }
     if (e instanceof OAuth2RequestError) {
       // invalid code
       return new Response(null, {
@@ -79,9 +98,12 @@ export async function GET(request: Request): Promise<Response> {
 
 export interface GitHubUser {
   id: string;
-  login: string;
+  name: string;
   avatar_url: string;
+}
+export interface GitHubEmail {
   email: string;
+  verified: boolean;
 }
 
 function getPrimaryEmail(emails: Email[]): string {

@@ -8,13 +8,11 @@ export const createVerifyEmailToken = async (
   userId: string,
   tx: TransactionType = prisma,
 ) => {
-  const tokenExpiresAt = new Date(Date.now() + TOKEN_TTL);
-
-  const token = await tx.emailVerificationToken.findFirst({
+  const existingToken = await tx.emailVerificationToken.findUnique({
     where: { userId },
   });
 
-  if (token) {
+  if (existingToken) {
     await tx.emailVerificationToken.delete({
       where: {
         userId,
@@ -26,23 +24,27 @@ export const createVerifyEmailToken = async (
     data: {
       userId,
       token: generateUUID(),
-      tokenExpiresAt,
+      expires: new Date(Date.now() + TOKEN_TTL),
     },
   });
 
-  return { verificationToken };
+  return verificationToken;
 };
 
 export const getVerifyEmailToken = async (token: string) => {
-  const existingToken = await prisma.emailVerificationToken.findUnique({
+  const verificationToken = await prisma.emailVerificationToken.findUnique({
     where: {
       token,
     },
   });
 
-  return existingToken;
+  return verificationToken;
 };
 
 export const deleteVerifyEmailToken = async (token: string) => {
-  await prisma.emailVerificationToken.delete({ where: { token } });
+  const verificationToken = await prisma.emailVerificationToken.delete({
+    where: { token },
+  });
+
+  return verificationToken;
 };

@@ -1,11 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["omitApi"]
 }
 
 datasource db {
@@ -14,15 +9,11 @@ datasource db {
 }
 
 model User {
-  id                String                  @id @default(auto()) @map("_id") @db.ObjectId
-  name              String?
-  image             String?
-  email             String?                 @unique
-  emailVerified     DateTime?
-  emailToken        EmailVerificationToken?
-  type              String
-  provider          String?
-  providerAccountId String?
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
+  name          String?
+  image         String?
+  email         String?   @unique
+  emailVerified DateTime?
 
   conversations   Conversation[] @relation(fields: [conversationIds], references: [id])
   conversationIds String[]       @db.ObjectId
@@ -30,25 +21,43 @@ model User {
   seenMessages   Message[] @relation("Seen", fields: [seenMessageIds], references: [id])
   seenMessageIds String[]  @db.ObjectId
 
-  messages Message[]
-  sessions Session[]
+  emailToken EmailVerificationToken?
+  messages   Message[]
+  sessions   Session[]
+  accounts   Account[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  type              String
+  hashPassword      String?
+  provider          String?
+  providerAccountId String?
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Session {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String   @db.ObjectId
-  expiresAt DateTime
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  expires DateTime
 
-  user User @relation(references: [id], fields: [userId], onDelete: Cascade)
+  user   User   @relation(references: [id], fields: [userId], onDelete: Cascade)
+  userId String @db.ObjectId
 }
 
 model EmailVerificationToken {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  token          String   @unique
-  tokenExpiresAt DateTime
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  token   String   @unique
+  expires DateTime
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique @db.ObjectId
