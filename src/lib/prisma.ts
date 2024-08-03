@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 const prismaClientSingleton = () => {
   return new PrismaClient({
     omit: {
-      account: { hashPassword: true, refresh_token: true, access_token: true },
+      account: { hashPassword: true },
     },
   });
 };

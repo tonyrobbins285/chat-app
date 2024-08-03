@@ -1,10 +1,9 @@
 import { cookies } from "next/headers";
 import { OAuth2RequestError } from "arctic";
-import { createGithubUserUseCase } from "@/use-cases/users";
-import { getAccountByGithubIdUseCase } from "@/use-cases/accounts";
-import { github } from "@/lib/auth";
-import { setSession } from "@/lib/session";
-import { getUserByGithubId } from "@/data-access/users";
+// import { createGithubUserUseCase } from "@/use-cases/users";
+// import { getAccountByGithubIdUseCase } from "@/use-cases/accounts";
+import { github } from "@/lib/arctic";
+// import { getUserByGithubId } from "@/data-access/users";
 import { getAccountByGithubId } from "@/data-access/accounts";
 
 export async function GET(request: Request): Promise<Response> {
@@ -45,7 +44,6 @@ export async function GET(request: Request): Promise<Response> {
     const existingAccount = await getAccountByGithubId(githubUser.id);
 
     if (existingAccount) {
-      await setSession(existingAccount.userId);
       return new Response(null, {
         status: 302,
         headers: {
@@ -64,8 +62,6 @@ export async function GET(request: Request): Promise<Response> {
         },
       );
       const githubUserEmails = await githubUserEmailResponse.json();
-
-      githubUser.email = getPrimaryEmail(githubUserEmails);
     }
 
     const userId = await createGithubUserUseCase(githubUser);
@@ -104,16 +100,4 @@ export interface GitHubUser {
 export interface GitHubEmail {
   email: string;
   verified: boolean;
-}
-
-function getPrimaryEmail(emails: Email[]): string {
-  const primaryEmail = emails.find((email) => email.primary);
-  return primaryEmail!.email;
-}
-
-interface Email {
-  email: string;
-  primary: boolean;
-  verified: boolean;
-  visibility: string | null;
 }

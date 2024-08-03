@@ -16,13 +16,13 @@ import { Input } from "@/components/ui/input";
 import { SignUpSchema } from "@/zod/schema";
 import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
-import { AuthFormType } from "@/zod/types";
-import { signUpAction } from "../actions";
+import { SignUpType } from "@/zod/types";
 import toast from "react-hot-toast";
 import { EmailInUseError, InputValidationError } from "@/lib/errors";
+import { signUpAction } from "@/app/actions/sign-up";
 
 export default function SignUpForm() {
-  const form = useForm<AuthFormType>({
+  const form = useForm<SignUpType>({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
     resolver: zodResolver(SignUpSchema),
@@ -32,7 +32,7 @@ export default function SignUpForm() {
     },
   });
 
-  const onSubmit = async (values: AuthFormType) => {
+  const onSubmit = async (values: SignUpType) => {
     const res = await signUpAction(values);
 
     if (!res.success) {

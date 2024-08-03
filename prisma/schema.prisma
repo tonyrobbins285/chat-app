@@ -23,7 +23,6 @@ model User {
 
   emailToken EmailVerificationToken?
   messages   Message[]
-  sessions   Session[]
   accounts   Account[]
 
   createdAt DateTime @default(now())
@@ -31,13 +30,13 @@ model User {
 }
 
 model Account {
-  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  id                String         @id @default(auto()) @map("_id") @db.ObjectId
   type              String
   hashPassword      String?
   provider          String?
   providerAccountId String?
-  refresh_token     String? @db.String
-  access_token      String? @db.String
+  refreshTokens     AccessToken[]
+  accessTokens      RefreshToken[]
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @db.ObjectId
@@ -46,12 +45,22 @@ model Account {
   updatedAt DateTime @updatedAt
 }
 
-model Session {
+model AccessToken {
   id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  token   String
   expires DateTime
 
-  user   User   @relation(references: [id], fields: [userId], onDelete: Cascade)
-  userId String @db.ObjectId
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String  @db.ObjectId
+}
+
+model RefreshToken {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  token   String
+  expires DateTime
+
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String  @db.ObjectId
 }
 
 model EmailVerificationToken {

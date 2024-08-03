@@ -1,4 +1,5 @@
 import { z } from "zod";
-import { SignUpSchema } from "./schema";
+import { VerifyEmailSchema, SignUpSchema } from "./schema";
 
-export type AuthFormType = z.infer<typeof SignUpSchema>;
+export type SignUpType = z.infer<typeof SignUpSchema>;
+export type VerifyEmailType = z.infer<typeof VerifyEmailSchema>;

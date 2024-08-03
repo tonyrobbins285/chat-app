@@ -20,7 +20,7 @@ export class EmailInUseError extends PublicError {
 
 export class InputValidationError extends PublicError {
   constructor() {
-    super("Invalid Credentials.");
+    super("Invalid Inputs.");
     this.name = "InputValidationError";
   }
 }
@@ -29,5 +29,12 @@ export class SendEmailError extends PublicError {
   constructor() {
     super("Error: Could not send email.");
     this.name = "SendEmailError";
+  }
+}
+
+export class UserDoesNotExistError extends PublicError {
+  constructor() {
+    super("Error: User does not exist.");
+    this.name = "UserDoesNotExistError";
   }
 }

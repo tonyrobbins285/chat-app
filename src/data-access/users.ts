@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma";
 import { TransactionType } from "./utils";
 
-export const getUserByEmail = async (email: string) => {
-  return await prisma.user.findUnique({
+export const getUserByEmail = async (
+  email: string,
+  tx: TransactionType = prisma,
+) => {
+  return await tx.user.findUnique({
     where: {
       email,
     },

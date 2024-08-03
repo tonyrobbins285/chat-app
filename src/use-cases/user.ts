@@ -6,18 +6,15 @@ import {
 } from "@/data-access/accounts";
 import { createUser, getUserByEmail } from "@/data-access/users";
 import { createHashedPassword } from "@/lib/utils";
-import { AuthFormType } from "@/zod/types";
-import { sendEmail } from "@/lib/mail";
+import { SignUpType } from "@/zod/types";
 import { EmailInUseError } from "@/lib/errors";
 import { createTransaction } from "@/data-access/utils";
-import { createVerifyEmailToken } from "@/data-access/email-verification-token";
 import { User } from "@prisma/client";
+import { sendVerificationUseCase } from "./email-verification";
 
-export async function signUpUserUseCase(inputs: AuthFormType) {
+export async function signUpUserUseCase(inputs: SignUpType) {
   const { email, password } = inputs;
-
   const existingUser = await getUserByEmail(email);
-
   if (existingUser) {
     const account = await getCredentialsAccount(existingUser.id);
     if (account) throw new EmailInUseError();
@@ -41,17 +38,6 @@ export async function signUpUserUseCase(inputs: AuthFormType) {
       tx,
     );
 
-    const verificationToken = await createVerifyEmailToken(user.id);
-    const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken.token}`;
-
-    await sendEmail({
-      email,
-      subject: "Verify your email.",
-      html: `<p>Click <a href="${verificationLink}">here</a> to verify your email.</p>`,
-    });
+    await sendVerificationUseCase(email);
   });
-
-  return {
-    message: `Email verification was sent to ${email}`,
-  };
 }
