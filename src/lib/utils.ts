@@ -7,8 +7,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const createHashedPassword = async (plaintextPassword: string) => {
-  return await bcrypt.hash(plaintextPassword, 10);
+export const createHashedPassword = async (
+  plaintextPassword: string,
+  salt: string = "",
+) => {
+  return await bcrypt.hash(plaintextPassword, salt);
 };
 
 export const generateUUID = () => {

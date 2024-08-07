@@ -1,9 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Facebook, Github } from "lucide-react";
-import { signIn } from "@/auth";
 import type { Metadata } from "next";
-import AuthForm from "../_components/auth-form";
+import SignInForm from "@/components/sign-in/sign-in-form";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -40,7 +39,7 @@ export default function LoginPage() {
             Create an account
           </Link>
         </p>
-        <AuthForm variant="SignIn" />
+        <SignInForm />
       </div>
 
       {/* Seperator */}
@@ -55,15 +54,6 @@ export default function LoginPage() {
 
       {/* OAuth */}
       <div className="flex gap-2">
-        <form
-          action={async () => {
-            "use server";
-            await signIn("github");
-          }}
-        >
-          <button type="submit">Signin with GitHub</button>
-        </form>
-
         <div className="cursor-pointer rounded-full border-2 p-3 hover:border-blue-700">
           <Github size={30} />
         </div>

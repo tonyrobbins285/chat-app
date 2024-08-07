@@ -1,41 +1,53 @@
 import "server-only";
 
-import { PublicError } from "./errors";
+import { ClientError } from "./errors";
 import { isRedirectError } from "next/dist/client/components/redirect";
 
-type AsyncActionFunction<T> = (inputs: T) => Promise<
-  Partial<{
-    message: string;
-    name: string;
-    data: Record<string, string>;
-  }>
->;
+type AsyncActionFunction<T> = (inputs: T) => Promise<Record<string, string>>;
+
+type HandleAsyncActionType =
+  | {
+      data?: Record<string, string>;
+      success: true;
+    }
+  | {
+      error: {
+        message: string;
+        name: string;
+      };
+      success: false;
+    };
 
 export const handleAsyncAction =
   <T>(fn: AsyncActionFunction<T>, errorFile?: string) =>
-  async (inputs: T) => {
+  async (inputs: T): Promise<HandleAsyncActionType> => {
     try {
       const result = await fn(inputs);
 
-      return { ...result, success: true };
+      return {
+        data: result,
+        success: true,
+      };
     } catch (error) {
       const errorObj = {
+        error: {
+          message: "",
+          name: "",
+        },
         success: false,
-        message: "",
-        name: "",
       };
-
-      if (error instanceof PublicError) {
-        errorObj.message = error.message;
-        errorObj.name = error.name;
-      } else if (isRedirectError(error)) {
+      if (isRedirectError(error)) {
         throw error;
-      } else {
-        console.error(errorFile || error);
-        errorObj.message = "Internal Error.";
-        errorObj.name = "InternalError";
       }
 
+      if (error instanceof ClientError) {
+        errorObj.error.message = error.message;
+        errorObj.error.name = error.name;
+      } else {
+        console.error("Error: ", errorFile || error);
+        errorObj.error.message = "Internal Error.";
+        errorObj.error.name = "InternalError";
+      }
       return errorObj;
     }
   };

@@ -7,18 +7,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import {
-  mixedCaseLettersRegex,
-  minEightCharactersRegex,
-  oneDigitRegex,
-} from "@/regex/password";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import FormPasswordRequirementIndicator from "./form-password-requirement-indicator";
-import { AuthFormProps } from "./auth-form";
 
-export default function FormPassword({ variant }: AuthFormProps) {
+export default function FormPassword() {
   const form = useFormContext();
   const [isShown, setIsShown] = useState(false);
 
@@ -53,19 +46,6 @@ export default function FormPassword({ variant }: AuthFormProps) {
             </div>
             <FormMessage className="text-xs" />
           </FormItem>
-
-          {variant === "SignUp" && (
-            <div className="space-y-2 text-xs text-primary">
-              <p className="font-semibold">Create a password that:</p>
-              <FormPasswordRequirementIndicator
-                regexObj={minEightCharactersRegex}
-              />
-              <FormPasswordRequirementIndicator
-                regexObj={mixedCaseLettersRegex}
-              />
-              <FormPasswordRequirementIndicator regexObj={oneDigitRegex} />
-            </div>
-          )}
         </div>
       )}
     />

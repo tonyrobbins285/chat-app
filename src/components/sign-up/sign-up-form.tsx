@@ -18,8 +18,8 @@ import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
 import { SignUpType } from "@/zod/types";
 import toast from "react-hot-toast";
-import { EmailInUseError, InputValidationError } from "@/lib/errors";
-import { signUpAction } from "@/app/actions/sign-up";
+import { EmailInUseError } from "@/lib/errors";
+import { signUpAction } from "@/app/(auth)/sign-up/actions";
 
 export default function SignUpForm() {
   const form = useForm<SignUpType>({
@@ -33,21 +33,22 @@ export default function SignUpForm() {
   });
 
   const onSubmit = async (values: SignUpType) => {
-    const res = await signUpAction(values);
+    const result = await signUpAction(values);
 
-    if (!res.success) {
-      if (res.name === new EmailInUseError().name) {
-        form.setError("email", { message: res.message }, { shouldFocus: true });
+    if (!result.success) {
+      if (result.error.name === new EmailInUseError().name) {
+        form.setError(
+          "email",
+          { message: result.error.message },
+          { shouldFocus: true },
+        );
       } else {
-        if (res.name === new InputValidationError().name) {
-          form.setFocus("email");
-        }
-        console.error(res.name);
-        toast.error(res.message as string);
+        console.error(result.error.name);
+        toast.error(result.error.message);
       }
     } else {
       form.reset();
-      toast.success(res.message as string, { duration: 30000 });
+      toast.success(result.data?.message as string, { duration: 30000 });
     }
   };
 

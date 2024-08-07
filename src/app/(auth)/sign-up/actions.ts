@@ -2,7 +2,7 @@
 
 import { InputValidationError } from "@/lib/errors";
 import { handleAsyncAction } from "@/lib/handle-async-action";
-import { signUpUserUseCase } from "@/use-cases/user";
+import { signUpUseCase } from "@/use-cases/user";
 import { SignUpSchema } from "@/zod/schema";
 import { SignUpType } from "@/zod/types";
 
@@ -13,9 +13,9 @@ export const signUpAction = handleAsyncAction(async (inputs: SignUpType) => {
     throw new InputValidationError();
   }
 
-  await signUpUserUseCase(validatedInputes.data);
+  await signUpUseCase(validatedInputes.data);
 
   return {
     message: `Email verification was sent to ${validatedInputes.data.email}`,
   };
-});
+}, "signUpAction");

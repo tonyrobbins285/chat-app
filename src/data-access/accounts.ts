@@ -5,6 +5,7 @@ export const createAccountWithCredentials = async (
   data: {
     userId: string;
     hashedPassword: string;
+    salt: string;
   },
   tx: TransactionType = prisma,
 ) => {

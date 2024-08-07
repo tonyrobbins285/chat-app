@@ -1,11 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
-  return new PrismaClient({
-    omit: {
-      account: { hashPassword: true },
-    },
-  });
+  return new PrismaClient();
 };
 
 declare const globalThis: {

@@ -16,15 +16,16 @@ import { Input } from "@/components/ui/input";
 import { SignUpSchema } from "@/zod/schema";
 import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
-import { AuthFormType } from "@/zod/types";
-import { signUpAction } from "../sign-up/actions";
+import { SignInType } from "@/zod/types";
+import { signInAction } from "@/app/(auth)/sign-in/actions";
+import { redirect } from "next/navigation";
+import { useRouter } from "next/router";
 
-export type AuthFormProps = {
-  variant: "SignIn" | "SignUp";
-};
+export default function SignInForm() {
+  const router = useRouter();
+  const url = JSON.parse(router.query.result) || "/";
 
-export default function AuthForm({ variant }: AuthFormProps) {
-  const form = useForm<AuthFormType>({
+  const form = useForm<SignInType>({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
     resolver: zodResolver(SignUpSchema),
@@ -34,11 +35,13 @@ export default function AuthForm({ variant }: AuthFormProps) {
     },
   });
 
-  const onSubmit = async (values: AuthFormType) => {
-    if (variant === "SignIn") {
+  const onSubmit = async (values: SignInType) => {
+    const result = await signInAction(values);
+    if (result.success) {
+      localStorage.setItem("accessToken", `Bearer ${result.data?.accessToken}`);
+
+      router.replace(url);
     }
-    const res = await signUpAction(values);
-    console.log(res);
   };
 
   return (
@@ -79,7 +82,7 @@ export default function AuthForm({ variant }: AuthFormProps) {
             </FormItem>
           )}
         />
-        <FormPassword variant={variant} />
+        <FormPassword />
         <Button
           disabled={form.formState.isSubmitting}
           className="w-full bg-gradient-to-tr from-blue-400 to-blue-700 transition-colors duration-500 hover:from-blue-400 hover:to-transparent"

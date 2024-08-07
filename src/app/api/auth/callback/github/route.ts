@@ -52,20 +52,20 @@ export async function GET(request: Request): Promise<Response> {
       });
     }
 
-    if (!githubUser.email) {
-      const githubUserEmailResponse = await fetch(
-        "https://api.github.com/user/emails",
-        {
-          headers: {
-            Authorization: `Bearer ${tokens.accessToken}`,
-          },
-        },
-      );
-      const githubUserEmails = await githubUserEmailResponse.json();
-    }
+    // if (!githubUser.email) {
+    //   const githubUserEmailResponse = await fetch(
+    //     "https://api.github.com/user/emails",
+    //     {
+    //       headers: {
+    //         Authorization: `Bearer ${tokens.accessToken}`,
+    //       },
+    //     },
+    //   );
+    //   const githubUserEmails = await githubUserEmailResponse.json();
+    // }
 
-    const userId = await createGithubUserUseCase(githubUser);
-    await setSession(userId);
+    // const userId = await createGithubUserUseCase(githubUser);
+    // await setSession(userId);
     return new Response(null, {
       status: 302,
       headers: {

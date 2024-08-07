@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["omitApi"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -21,22 +20,23 @@ model User {
   seenMessages   Message[] @relation("Seen", fields: [seenMessageIds], references: [id])
   seenMessageIds String[]  @db.ObjectId
 
-  emailToken EmailVerificationToken?
-  messages   Message[]
-  accounts   Account[]
+  emailToken    EmailVerificationToken?
+  messages      Message[]
+  accounts      Account[]
+  accessTokens  RefreshToken[]
+  refreshTokens AccessToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Account {
-  id                String         @id @default(auto()) @map("_id") @db.ObjectId
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
   type              String
+  salt              String?
   hashPassword      String?
   provider          String?
   providerAccountId String?
-  refreshTokens     AccessToken[]
-  accessTokens      RefreshToken[]
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @db.ObjectId
@@ -50,8 +50,8 @@ model AccessToken {
   token   String
   expires DateTime
 
-  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId String  @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
 }
 
 model RefreshToken {
@@ -59,8 +59,8 @@ model RefreshToken {
   token   String
   expires DateTime
 
-  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  accountId String  @db.ObjectId
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @db.ObjectId
 }
 
 model EmailVerificationToken {
