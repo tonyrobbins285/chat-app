@@ -18,12 +18,16 @@ import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
 import { SignInType } from "@/zod/types";
 import { signInAction } from "@/app/(auth)/sign-in/actions";
-import { redirect } from "next/navigation";
-import { useRouter } from "next/router";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { useAuthStore } from "@/stores/use-auth-store";
 
 export default function SignInForm() {
   const router = useRouter();
-  const url = JSON.parse(router.query.result) || "/";
+  const searchParams = useSearchParams();
+  const url = searchParams.get("from") || "/";
+  const setSession = useAuthStore((state) => state.setSession);
 
   const form = useForm<SignInType>({
     mode: "onSubmit",
@@ -38,9 +42,15 @@ export default function SignInForm() {
   const onSubmit = async (values: SignInType) => {
     const result = await signInAction(values);
     if (result.success) {
+      if (!result.data?.accessToken) {
+        throw new Error("Access Token has not been returned.");
+      }
       localStorage.setItem("accessToken", `Bearer ${result.data?.accessToken}`);
-
+      setSession(result.data?.accessToken);
       router.replace(url);
+    } else {
+      console.error(result.error.name);
+      toast.error(result.error.message);
     }
   };
 

@@ -1,23 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTokenFromHeaders, verifyToken } from "./lib/session";
+import { getServerSession } from "./lib/session";
+import { getLoginUrl } from "./lib/utils";
+import { CLIENT_URL } from "./lib/constants";
+import { AUTH_ROUTES } from "./routes";
 
 export async function middleware(req: NextRequest) {
-  const { nextUrl, headers } = req;
+  const { nextUrl } = req;
 
-  const token = getTokenFromHeaders(headers);
-  if (nextUrl.pathname.includes("/sign-in")) {
-    return NextResponse.next();
+  const session = await getServerSession();
+  console.log(AUTH_ROUTES.includes(nextUrl.pathname));
+  console.log(nextUrl);
+  if (AUTH_ROUTES.includes(nextUrl.pathname)) {
+    const from = nextUrl.searchParams.get("from") || "/";
+    if (session) {
+      return NextResponse.redirect(new URL(from, CLIENT_URL));
+    } else {
+      return NextResponse.next();
+    }
   }
 
-  if (!token) {
-    return NextResponse.redirect(new URL("/sign-in", req.url));
+  if (!session) {
+    const loginUrl = getLoginUrl(req);
+    return NextResponse.redirect(loginUrl);
   }
 
-  const decoded = await verifyToken(token, "ACCESS");
-
-  if (decoded) {
-    return NextResponse.next();
-  }
+  return NextResponse.next();
 }
 
 export const config = {

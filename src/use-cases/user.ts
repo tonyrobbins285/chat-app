@@ -11,9 +11,6 @@ import { EmailInUseError, InputValidationError } from "@/lib/errors";
 import { createTransaction } from "@/data-access/utils";
 import { User } from "@prisma/client";
 import { sendVerificationUseCase } from "./email-verification";
-import { cookies } from "next/headers";
-import { createAccessToken, createRefreshToken } from "@/data-access/tokens";
-import { REFRESH_TOKEN_TTL } from "@/lib/constants";
 import { createSession } from "@/lib/session";
 
 export async function signUpUseCase(inputs: SignUpType) {

@@ -1,11 +1,13 @@
 import { create } from "zustand";
 
 interface AuthState {
-  bears: number;
-  increase: (by: number) => void;
+  accessToken: string;
+  setSession: (session: string) => void;
+  clearSession: () => void;
 }
 
-const useAuthStore = create<AuthState>()((set) => ({
-  bears: 0,
-  increase: (by) => set((state) => ({ bears: state.bears + by })),
+export const useAuthStore = create<AuthState>()((set) => ({
+  accessToken: localStorage.getItem("accessToken") || "",
+  setSession: (session) => set({ accessToken: session }),
+  clearSession: () => set({ accessToken: "" }),
 }));
