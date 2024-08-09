@@ -6,7 +6,7 @@ import { signInUseCase } from "@/use-cases/user";
 import { SignInSchema } from "@/zod/schema";
 import { SignInType } from "@/zod/types";
 
-export const signInAction = handleAsyncAction(async (inputs: SignInType) => {
+export const signInAction = async (inputs: SignInType) => {
   const validatedInputes = await SignInSchema.safeParseAsync(inputs);
 
   if (!validatedInputes.success) {
@@ -16,4 +16,4 @@ export const signInAction = handleAsyncAction(async (inputs: SignInType) => {
   const accessToken = await signInUseCase(validatedInputes.data);
 
   return { accessToken };
-}, "signInAction");
+};

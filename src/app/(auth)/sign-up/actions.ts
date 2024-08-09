@@ -6,7 +6,7 @@ import { signUpUseCase } from "@/use-cases/user";
 import { SignUpSchema } from "@/zod/schema";
 import { SignUpType } from "@/zod/types";
 
-export const signUpAction = handleAsyncAction(async (inputs: SignUpType) => {
+export const signUpAction = async (inputs: SignUpType) => {
   const validatedInputes = await SignUpSchema.safeParseAsync(inputs);
 
   if (!validatedInputes.success) {
@@ -18,4 +18,4 @@ export const signUpAction = handleAsyncAction(async (inputs: SignUpType) => {
   return {
     message: `Email verification was sent to ${validatedInputes.data.email}`,
   };
-}, "signUpAction");
+};

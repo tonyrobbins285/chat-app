@@ -9,12 +9,13 @@ import { TokenType } from "./types";
 
 export const generateToken = async (
   userId: string,
-  expiresIn: string,
+  expiresIn: Date,
   type: TokenType,
 ) => {
   const secret = getTokenSecret(type);
-  return new SignJWT({ userId })
+  return await new SignJWT({ userId })
     .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setIssuedAt()
     .setExpirationTime(expiresIn)
     .sign(secret);
 };

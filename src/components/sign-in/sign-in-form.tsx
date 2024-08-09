@@ -42,16 +42,16 @@ export default function SignInForm() {
   const onSubmit = async (values: SignInType) => {
     const result = await signInAction(values);
     console.log(result);
-    if (result.success) {
-      if (!result.data?.accessToken) {
-        throw new Error("Access Token has not been returned.");
-      }
-      setSession(result.data?.accessToken);
-      router.replace(url);
-    } else {
-      console.error(result.error.name);
-      toast.error(result.error.message);
-    }
+    setSession(result.accessToken);
+    router.replace(url);
+    // if (result.success) {
+    //   if (!result.data?.accessToken) {
+    //     throw new Error("Access Token has not been returned.");
+    //   }
+    // } else {
+    //   console.error(result.error.name);
+    //   toast.error(result.error.message);
+    // }
   };
 
   return (
