@@ -8,8 +8,6 @@ export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
 
   const session = await getServerSession();
-  console.log(AUTH_ROUTES.includes(nextUrl.pathname));
-  console.log(nextUrl);
   if (AUTH_ROUTES.includes(nextUrl.pathname)) {
     const from = nextUrl.searchParams.get("from") || "/";
     if (session) {

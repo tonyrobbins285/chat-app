@@ -4,7 +4,7 @@ import { TransactionType } from "./utils";
 export const createAccountWithCredentials = async (
   data: {
     userId: string;
-    hashedPassword: string;
+    hashPassword: string;
     salt: string;
   },
   tx: TransactionType = prisma,

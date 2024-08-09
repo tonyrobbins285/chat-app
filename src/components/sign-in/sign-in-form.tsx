@@ -41,11 +41,11 @@ export default function SignInForm() {
 
   const onSubmit = async (values: SignInType) => {
     const result = await signInAction(values);
+    console.log(result);
     if (result.success) {
       if (!result.data?.accessToken) {
         throw new Error("Access Token has not been returned.");
       }
-      localStorage.setItem("accessToken", `Bearer ${result.data?.accessToken}`);
       setSession(result.data?.accessToken);
       router.replace(url);
     } else {

@@ -12,6 +12,14 @@ export const getUserByEmail = async (
   });
 };
 
+export const getUserById = async (id: string, tx: TransactionType = prisma) => {
+  return await tx.user.findUnique({
+    where: {
+      id,
+    },
+  });
+};
+
 export const createUser = async (
   email: string,
   tx: TransactionType = prisma,

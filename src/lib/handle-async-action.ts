@@ -44,7 +44,8 @@ export const handleAsyncAction =
         errorObj.error.message = error.message;
         errorObj.error.name = error.name;
       } else {
-        console.error("Error: ", errorFile || error);
+        console.error("Error: ", errorFile);
+        console.error(error);
         errorObj.error.message = "Internal Error.";
         errorObj.error.name = "InternalError";
       }

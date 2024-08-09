@@ -5,35 +5,47 @@ import {
   deleteVerifyEmailToken,
   getVerifyEmailToken,
 } from "@/data-access/email-verification-token";
-import { getUserByEmail, updateUserVerification } from "@/data-access/users";
+import {
+  getUserByEmail,
+  getUserById,
+  updateUserVerification,
+} from "@/data-access/users";
 import { AuthenticationError, UserDoesNotExistError } from "@/lib/errors";
-import { createTransaction } from "@/data-access/utils";
 import { sendEmail } from "@/lib/mail";
+import { CLIENT_URL } from "@/lib/constants";
+import { createSession } from "@/lib/session";
 
 type verifyEmailUseCaseProps = {
-  token: string | undefined;
+  token: string;
+  userId: string;
 };
 
 export const verifyEmailUseCase = async ({
   token,
+  userId,
 }: verifyEmailUseCaseProps) => {
-  if (!token) {
-    return;
-  }
-  const tokenEntry = await getVerifyEmailToken(token);
+  try {
+    const user = await getUserById(userId);
 
-  if (!tokenEntry) {
-    throw new AuthenticationError();
-  }
+    if (user?.emailVerified) {
+      return {
+        message: "Your email was already verified!",
+      };
+    }
 
-  const userId = tokenEntry.userId;
+    const tokenEntry = await getVerifyEmailToken(token);
 
-  await updateUserVerification(userId);
-  await deleteVerifyEmailToken(token);
+    if (!tokenEntry) {
+      throw new AuthenticationError();
+    }
 
-  return {
-    message: "Your email has been verified!",
-  };
+    await updateUserVerification(userId);
+    await deleteVerifyEmailToken(token);
+
+    return {
+      message: "Your email has been verified!",
+    };
+  } catch (error) {}
 };
 
 export const sendVerificationUseCase = async (email: string) => {
@@ -43,8 +55,14 @@ export const sendVerificationUseCase = async (email: string) => {
     throw new UserDoesNotExistError();
   }
 
+  if (user.emailVerified) {
+    return {
+      message: `Your email is already verified!`,
+    };
+  }
+
   const verificationToken = await createVerifyEmailToken(user.id);
-  const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${verificationToken.token}`;
+  const verificationLink = `${CLIENT_URL}/verify-email?token=${verificationToken.token}`;
 
   await sendEmail({
     email,

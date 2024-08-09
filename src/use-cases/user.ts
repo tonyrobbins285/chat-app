@@ -5,13 +5,19 @@ import {
   getCredentialsAccount,
 } from "@/data-access/accounts";
 import { createUser, getUserByEmail } from "@/data-access/users";
-import { createHashedPassword, generateUUID } from "@/lib/utils";
+import { createHashPassword, generateSalt } from "@/lib/utils";
 import { SignInType, SignUpType } from "@/zod/types";
-import { EmailInUseError, InputValidationError } from "@/lib/errors";
+import {
+  EmailInUseError,
+  InputValidationError,
+  UserDoesNotExistError,
+} from "@/lib/errors";
 import { createTransaction } from "@/data-access/utils";
 import { User } from "@prisma/client";
-import { sendVerificationUseCase } from "./email-verification";
 import { createSession } from "@/lib/session";
+import { createVerifyEmailToken } from "@/data-access/email-verification-token";
+import { sendEmail } from "@/lib/mail";
+import { CLIENT_URL } from "@/lib/constants";
 
 export async function signUpUseCase(inputs: SignUpType) {
   const { email, password } = inputs;
@@ -29,20 +35,27 @@ export async function signUpUseCase(inputs: SignUpType) {
       user = existingUser;
     }
 
-    const salt = generateUUID();
+    const salt = generateSalt();
 
-    const hashedPassword = await createHashedPassword(password, salt);
+    const hashPassword = await createHashPassword(password, salt);
 
     await createAccountWithCredentials(
       {
         userId: user.id,
-        hashedPassword,
+        hashPassword,
         salt,
       },
       tx,
     );
 
-    await sendVerificationUseCase(email);
+    const verificationToken = await createVerifyEmailToken(user.id, tx);
+    const verificationLink = `${CLIENT_URL}/verify-email?token=${verificationToken.token}&userId=${user.id}`;
+
+    await sendEmail({
+      email,
+      subject: "Verify your email.",
+      html: `<p>Click <a href="${verificationLink}">here</a> to verify your email.</p>`,
+    });
   });
 }
 
@@ -77,7 +90,7 @@ export async function verifyPassword(inputs: SignInType) {
     throw new InputValidationError();
   }
 
-  const hash = await createHashedPassword(password, account.salt!);
+  const hash = await createHashPassword(password, account.salt!);
 
   return hash === account.hashPassword;
 }

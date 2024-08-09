@@ -1,31 +1,32 @@
 "use server";
 
-import jwt from "jsonwebtoken";
+import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import { createAccessToken, createRefreshToken } from "@/data-access/tokens";
-import { cookies, headers } from "next/headers";
-import { REFRESH_TOKEN_TTL } from "./constants";
+import { cookies } from "next/headers";
+import { ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL } from "./constants";
 import { getTokenSecret } from "./utils";
 import { TokenType } from "./types";
 
-export const generateToken = (
+export const generateToken = async (
   userId: string,
   expiresIn: string,
   type: TokenType,
 ) => {
   const secret = getTokenSecret(type);
-  return jwt.sign({ userId }, secret, {
-    expiresIn,
-  });
+  return new SignJWT({ userId })
+    .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+    .setExpirationTime(expiresIn)
+    .sign(secret);
 };
 
 export const verifyToken = async (token: string, type: TokenType) => {
   const secret = getTokenSecret(type);
-
   try {
-    return jwt.verify(token, secret);
+    const { payload } = await jwtVerify(token, secret);
+    return payload;
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      console.log(error.message);
+    if (error) {
+      console.log("VERIFY TOKEN ERROR: " + error);
     }
   }
 };
@@ -41,22 +42,28 @@ export const createSession = async (userId: string) => {
     path: "/",
     sameSite: "strict",
   });
+  cookies().set("authorization", `Bearer ${accessToken.token}`, {
+    secure: true,
+    httpOnly: true,
+    expires: Date.now() + ACCESS_TOKEN_TTL,
+    path: "/",
+    sameSite: "strict",
+  });
 
   return accessToken.token;
 };
 
 export const getServerSession = async () => {
-  const headerLists = headers();
+  const cookieStore = cookies();
   const authToken =
-    headerLists.get("authorization") || headerLists.get("Authorization");
-
-  if (!authToken?.startsWith("Bearer ")) {
+    cookieStore.get("authorization")?.value ||
+    cookieStore.get("Authorization")?.value;
+  if (!authToken || !authToken.startsWith("Bearer ")) {
     return undefined;
   }
 
   const token = authToken.split(" ")[1];
-
   const decoded = await verifyToken(token, "ACCESS");
-
+  console.log(decoded);
   return decoded;
 };

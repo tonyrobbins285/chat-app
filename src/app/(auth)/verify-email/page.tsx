@@ -8,11 +8,19 @@ type VerifyEmailPageProps = {
 export default async function VerifyEmailPage({
   searchParams,
 }: VerifyEmailPageProps) {
-  const result = await verifyEmailUseCase({ token: searchParams?.token });
+  const { token, userId } = searchParams;
+
+  if (!token || !userId) {
+    return <VerifyFail />;
+  }
+
+  const result = await verifyEmailUseCase({ token, userId });
 
   return result ? (
     <div>
-      <h2>{result.message}</h2>
+      <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-gray-900">
+        {result.message}
+      </h2>
     </div>
   ) : (
     <VerifyFail />

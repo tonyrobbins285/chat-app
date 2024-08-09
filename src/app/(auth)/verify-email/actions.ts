@@ -6,7 +6,7 @@ import { sendVerificationUseCase } from "@/use-cases/email-verification";
 import { VerifyEmailSchema } from "@/zod/schema";
 import { VerifyEmailType } from "@/zod/types";
 
-export const resendVerificationAction = handleAsyncAction(
+export const sendVerificationEmailAction = handleAsyncAction(
   async (inputs: VerifyEmailType) => {
     const validatedInputes = await VerifyEmailSchema.safeParseAsync(inputs);
 

@@ -3,7 +3,7 @@ import { generateToken } from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 export const createAccessToken = async (userId: string) => {
-  const token = generateToken(userId, String(ACCESS_TOKEN_TTL), "ACCESS");
+  const token = await generateToken(userId, String(ACCESS_TOKEN_TTL), "ACCESS");
 
   const expires = new Date(Date.now() + ACCESS_TOKEN_TTL);
 
@@ -19,7 +19,11 @@ export const createAccessToken = async (userId: string) => {
 };
 
 export const createRefreshToken = async (userId: string) => {
-  const token = generateToken(userId, String(REFRESH_TOKEN_TTL), "REFRESH");
+  const token = await generateToken(
+    userId,
+    String(REFRESH_TOKEN_TTL),
+    "REFRESH",
+  );
 
   const expires = new Date(Date.now() + REFRESH_TOKEN_TTL);
 

@@ -10,11 +10,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const createHashedPassword = async (
+export const createHashPassword = async (
   plaintextPassword: string,
   salt: string = "",
 ) => {
   return await bcrypt.hash(plaintextPassword, salt);
+};
+
+export const generateSalt = () => {
+  return bcrypt.genSaltSync(10);
 };
 
 export const generateUUID = () => {
@@ -22,9 +26,11 @@ export const generateUUID = () => {
 };
 
 export const getTokenSecret = (type: TokenType) => {
-  return type === "ACCESS"
-    ? (process.env.ACCESS_TOKEN_SECRET as string)
-    : (process.env.REFRESH_TOKEN_SECRET as string);
+  const secret =
+    type === "ACCESS"
+      ? (process.env.ACCESS_TOKEN_SECRET as string)
+      : (process.env.REFRESH_TOKEN_SECRET as string);
+  return new TextEncoder().encode(secret);
 };
 
 export const getLoginUrl = (request: NextRequest) => {

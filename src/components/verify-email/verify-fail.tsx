@@ -1,6 +1,5 @@
 "use client";
 
-import { resendVerificationAction } from "@/app/actions/resend-verification";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,9 +16,14 @@ import { VerifyEmailSchema } from "@/zod/schema";
 import { cn } from "@/lib/utils";
 import { VerifyEmailType } from "@/zod/types";
 import toast from "react-hot-toast";
-import { InputValidationError } from "@/lib/errors";
+import { sendVerificationEmailAction } from "@/app/(auth)/verify-email/actions";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { UserDoesNotExistError } from "@/lib/errors";
 
 export default function VerifyFail() {
+  const router = useRouter();
+
   const form = useForm<VerifyEmailType>({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
@@ -29,27 +33,37 @@ export default function VerifyFail() {
     },
   });
 
-  const onSubmit = async (values: VerifyEmailType) => {
-    const res = await resendVerificationAction(values);
+  useEffect(() => {
+    router.replace("/verify-email");
+  }, []);
 
-    if (!res.success) {
-      if (res.name === new InputValidationError().name) {
-        form.setFocus("email");
-      }
-      console.error(res.name);
-      toast.error(res.message as string);
-    } else {
+  const onSubmit = async (values: VerifyEmailType) => {
+    const res = await sendVerificationEmailAction(values);
+
+    if (res.success) {
       form.reset();
-      toast.success(res.message as string, { duration: 30000 });
+      toast.success(res.data?.message as string, { duration: 30000 });
+    } else {
+      if (res.error.name === new UserDoesNotExistError().name) {
+        form.setError(
+          "email",
+          { message: res.error.message },
+          { shouldFocus: true },
+        );
+      } else {
+        toast.error(res.error?.message as string, { duration: 30000 });
+      }
     }
   };
 
   return (
     <div>
-      <h2>Verify Failed.</h2>
+      <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-gray-900">
+        Verify Failed
+      </h2>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="mt-3 space-y-8">
           <FormField
             control={form.control}
             name="email"
