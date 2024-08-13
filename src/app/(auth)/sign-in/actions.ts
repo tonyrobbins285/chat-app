@@ -2,9 +2,9 @@
 
 import { InputValidationError } from "@/lib/errors";
 import { handleAsyncAction } from "@/lib/handle-async-action";
-import { signInUseCase } from "@/use-cases/user";
-import { SignInSchema } from "@/zod/schema";
-import { SignInType } from "@/zod/types";
+import { SignInSchema } from "@/schemas/authSchema";
+import { SignInType } from "@/types/authTypes";
+import { signIn } from "@/use-cases/auth";
 
 export const signInAction = async (inputs: SignInType) => {
   const validatedInputes = await SignInSchema.safeParseAsync(inputs);
@@ -13,7 +13,7 @@ export const signInAction = async (inputs: SignInType) => {
     throw new InputValidationError();
   }
 
-  const accessToken = await signInUseCase(validatedInputes.data);
+  const accessToken = await signIn(validatedInputes.data);
 
   return { accessToken };
 };

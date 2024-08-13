@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { VerifyEmailSchema } from "@/zod/schema";
 import { cn } from "@/lib/utils";
-import { VerifyEmailType } from "@/zod/types";
+import { VerifyEmailType } from "@/lib/zod/types";
 import toast from "react-hot-toast";
 import { sendVerificationEmailAction } from "@/app/(auth)/verify-email/actions";
 import { useRouter } from "next/navigation";

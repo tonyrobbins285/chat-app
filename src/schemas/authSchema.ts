@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { strongPasswordRegex } from "@/regex/password";
+import { strongPasswordRegex } from "@/lib/regex/password";
 
 export const SignUpSchema = z.object({
   email: z

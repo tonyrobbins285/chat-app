@@ -4,7 +4,7 @@ import { InputValidationError } from "@/lib/errors";
 import { handleAsyncAction } from "@/lib/handle-async-action";
 import { sendVerificationUseCase } from "@/use-cases/email-verification";
 import { VerifyEmailSchema } from "@/zod/schema";
-import { VerifyEmailType } from "@/zod/types";
+import { VerifyEmailType } from "@/lib/zod/types";
 
 export const sendVerificationEmailAction = handleAsyncAction(
   async (inputs: VerifyEmailType) => {

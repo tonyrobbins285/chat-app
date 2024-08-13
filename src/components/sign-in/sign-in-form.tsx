@@ -13,15 +13,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SignUpSchema } from "@/zod/schema";
 import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
-import { SignInType } from "@/zod/types";
 import { signInAction } from "@/app/(auth)/sign-in/actions";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
-import { useAuthStore } from "@/stores/use-auth-store";
+import { useAuthStore } from "@/lib/store/authStore";
+import { SignInType } from "@/types/authTypes";
+import { SignUpSchema } from "@/schemas/authSchema";
 
 export default function SignInForm() {
   const router = useRouter();

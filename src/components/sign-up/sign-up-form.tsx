@@ -16,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { SignUpSchema } from "@/zod/schema";
 import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
-import { SignUpType } from "@/zod/types";
+import { SignUpType } from "@/lib/zod/types";
 import toast from "react-hot-toast";
 import { EmailInUseError } from "@/lib/errors";
 import { signUpAction } from "@/app/(auth)/sign-up/actions";

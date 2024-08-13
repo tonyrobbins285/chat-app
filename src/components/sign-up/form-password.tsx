@@ -11,7 +11,7 @@ import {
   mixedCaseLettersRegex,
   minEightCharactersRegex,
   oneDigitRegex,
-} from "@/regex/password";
+} from "@/lib/regex/password";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";

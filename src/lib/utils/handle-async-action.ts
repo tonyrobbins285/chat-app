@@ -1,11 +1,11 @@
 import "server-only";
 
-import { ClientError } from "./errors";
+import { ClientError } from "../errors";
 import { isRedirectError } from "next/dist/client/components/redirect";
 
 type AsyncActionFunction<T> = (inputs: T) => Promise<Record<string, string>>;
 
-type HandleAsyncActionType =
+type ActionResult =
   | {
       data?: Record<string, string>;
       success: true;
@@ -20,7 +20,7 @@ type HandleAsyncActionType =
 
 export const handleAsyncAction =
   <T>(fn: AsyncActionFunction<T>, errorFile?: string) =>
-  async (inputs: T): Promise<HandleAsyncActionType> => {
+  async (inputs: T): Promise<ActionResult> => {
     try {
       const result = await fn(inputs);
 
@@ -29,26 +29,26 @@ export const handleAsyncAction =
         success: true,
       };
     } catch (error) {
-      const errorObj = {
-        error: {
-          message: "",
-          name: "",
-        },
-        success: false,
-      };
       if (isRedirectError(error)) {
         throw error;
       }
 
+      let message = "Internal Error. Please try again!";
+      let name = "InternalError";
+
       if (error instanceof ClientError) {
-        errorObj.error.message = error.message;
-        errorObj.error.name = error.name;
+        message = error.message;
+        name = error.name;
       } else {
-        console.error("Error: ", errorFile);
         console.error(error);
-        errorObj.error.message = "Internal Error.";
-        errorObj.error.name = "InternalError";
+        console.error("Error in file: ", errorFile);
       }
-      return errorObj;
+      return {
+        error: {
+          message,
+          name,
+        },
+        success: false,
+      };
     }
   };

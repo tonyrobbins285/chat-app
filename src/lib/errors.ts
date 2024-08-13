@@ -1,16 +1,17 @@
 export class ClientError extends Error {
   constructor(message: string) {
     super(message);
+    this.name = "ClientError";
+  }
+}
+export class ServerError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ServerError";
   }
 }
 
-export class AuthenticationError extends ClientError {
-  constructor() {
-    super("You must be logged in to view this content.");
-    this.name = "AuthenticationError";
-  }
-}
-
+// Client Error
 export class EmailInUseError extends ClientError {
   constructor() {
     super("Email is already in use.");
@@ -18,23 +19,45 @@ export class EmailInUseError extends ClientError {
   }
 }
 
-export class InputValidationError extends ClientError {
+export class InvalidCredentialsError extends ClientError {
   constructor() {
-    super("Invalid Inputs.");
-    this.name = "InputValidationError";
+    super("Invalid email or password.");
+    this.name = "InvalidCredentialsError";
   }
 }
 
-export class SendEmailError extends ClientError {
+export class EmailVerificationError extends ClientError {
   constructor() {
-    super("Error: Could not send email.");
-    this.name = "SendEmailError";
+    super("Email verification failed.");
+    this.name = "EmailVerificationError";
   }
 }
 
-export class UserDoesNotExistError extends ClientError {
+// Server Error
+export class UserNotFoundError extends ServerError {
   constructor() {
-    super("Error: User does not exist.");
-    this.name = "UserDoesNotExistError";
+    super("User not found.");
+    this.name = "UserNotFoundError";
+  }
+}
+
+export class TokenNotFoundError extends ServerError {
+  constructor() {
+    super("Token not found or expired.");
+    this.name = "TokenNotFoundError";
+  }
+}
+
+export class TransactionError extends ServerError {
+  constructor(message: string = "Transaction failed.") {
+    super(message);
+    this.name = "TransactionError";
+  }
+}
+
+export class InternalServerError extends ServerError {
+  constructor(message: string = "Internal server error.") {
+    super(message);
+    this.name = "InternalServerError";
   }
 }
