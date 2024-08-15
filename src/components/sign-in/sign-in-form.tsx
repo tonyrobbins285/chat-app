@@ -15,18 +15,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
-import { signInAction } from "@/app/(auth)/sign-in/actions";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/lib/store/authStore";
 import { SignInType } from "@/types/authTypes";
 import { SignUpSchema } from "@/schemas/authSchema";
+import toast from "react-hot-toast";
+import { signInAction } from "@/actions/sign-in";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const url = searchParams.get("from") || "/";
-  const setSession = useAuthStore((state) => state.setSession);
 
   const form = useForm<SignInType>({
     mode: "onSubmit",
@@ -40,17 +39,13 @@ export default function SignInForm() {
 
   const onSubmit = async (values: SignInType) => {
     const result = await signInAction(values);
-    console.log(result);
-    setSession(result.accessToken);
-    router.replace(url);
-    // if (result.success) {
-    //   if (!result.data?.accessToken) {
-    //     throw new Error("Access Token has not been returned.");
-    //   }
-    // } else {
-    //   console.error(result.error.name);
-    //   toast.error(result.error.message);
-    // }
+    if (!result.success) {
+      console.error(result.error.name);
+      form.setFocus("email");
+      toast.error(result.error.message, { duration: 10000 });
+    } else {
+      router.replace(url);
+    }
   };
 
   return (

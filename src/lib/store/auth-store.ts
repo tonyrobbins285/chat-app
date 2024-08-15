@@ -11,7 +11,7 @@ const getInitialData = () => {
     return null;
   }
 
-  return localStorage.getItem("accessToken");
+  return localStorage.getItem("authorization");
 };
 
 export const useAuthStore = create<AuthState>()((set) => ({
@@ -19,3 +19,7 @@ export const useAuthStore = create<AuthState>()((set) => ({
   setSession: (session) => set({ accessToken: session }),
   clearSession: () => set({ accessToken: null }),
 }));
+
+export function signIn() {
+  return useAuthStore((state) => state.setSession);
+}

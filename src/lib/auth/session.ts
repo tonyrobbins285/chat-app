@@ -1,3 +1,4 @@
+"use server";
 import { createAuthToken } from "@/data-access/token";
 import { cookies } from "next/headers";
 import { verifyAuthToken } from "@/lib/auth/token";
@@ -8,7 +9,6 @@ export const getClientSession = async () => {
 };
 
 export const createSession = async (userId: string) => {
-  "user server";
   try {
     const accessToken = await createAuthToken({ userId }, "ACCESS");
     const refreshToken = await createAuthToken({ userId }, "REFRESH");
@@ -26,8 +26,6 @@ export const createSession = async (userId: string) => {
       path: "/",
       sameSite: "strict",
     });
-
-    return accessToken;
   } catch (error) {
     console.error(`Failed to create session: `, error);
     throw new InternalServerError(`Could not create session.`);
@@ -35,7 +33,6 @@ export const createSession = async (userId: string) => {
 };
 
 export const getServerSession = async () => {
-  "use server";
   try {
     const cookieStore = cookies();
     const authToken =

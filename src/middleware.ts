@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "./lib/session";
-import { getLoginUrl } from "./lib/utils";
-import { CLIENT_URL } from "./lib/constants";
-import { AUTH_ROUTES } from "./routes";
+import { CLIENT_URL } from "@/lib/constants";
+import { AUTH_ROUTES } from "@/routes";
+import { getServerSession } from "./lib/auth/session";
+import { getLoginUrl } from "@/lib/utils/url";
 
 export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
-
   const session = await getServerSession();
+
+  if (nextUrl.pathname.startsWith("/api")) {
+    return NextResponse.next();
+  }
+
   if (AUTH_ROUTES.includes(nextUrl.pathname)) {
     const from = nextUrl.searchParams.get("from") || "/";
     if (session) {

@@ -1,18 +1,14 @@
 import { InternalServerError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
-import { TransactionType } from "@/lib/utils/transaction";
 import { Prisma } from "@prisma/client";
 
-export const createAccount = async (
-  {
-    data,
-  }: {
-    data: Prisma.AccountCreateInput;
-  },
-  tx: TransactionType = prisma,
-) => {
+export const createAccount = async ({
+  data,
+}: {
+  data: Prisma.AccountCreateInput;
+}) => {
   try {
-    return await tx.account.create({ data });
+    return await prisma.account.create({ data });
   } catch (error) {
     console.error(`Failed to create account:`, error);
     throw new InternalServerError(`Could not create account.`);

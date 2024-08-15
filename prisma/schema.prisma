@@ -8,11 +8,10 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String?
-  image         String?
-  email         String?   @unique
-  emailVerified DateTime?
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  name  String?
+  image String?
+  email String? @unique
 
   conversations   Conversation[] @relation(fields: [conversationIds], references: [id])
   conversationIds String[]       @db.ObjectId

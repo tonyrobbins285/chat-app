@@ -1,10 +1,11 @@
-import { github } from "@/lib/auth";
+import { github } from "@/lib/oauth-provider/github";
 import { generateState } from "arctic";
 import { cookies } from "next/headers";
 
-export async function GET(): Promise<Response> {
+export async function GET() {
   const state = generateState();
-  const url = github.createAuthorizationURL(state, ["user:email"]);
+  const scopes = ["user:email", "repo"];
+  const url = github.createAuthorizationURL(state, scopes);
 
   cookies().set("github_oauth_state", state, {
     path: "/",

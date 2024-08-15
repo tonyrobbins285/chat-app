@@ -5,20 +5,14 @@ import { TokenType } from "@/lib/types";
 import { env } from "@/lib/env";
 import { InternalServerError } from "../errors";
 
-export const getAuthTokenSecret = (type: TokenType) => {
-  const secret =
-    type === "ACCESS" ? env.ACCESS_TOKEN_SECRET : env.REFRESH_TOKEN_SECRET;
-  return new TextEncoder().encode(secret);
-};
-
-export const generateAuthToken = async (
-  userId: string,
+export const generateToken = async (
+  payload: Record<string, string>,
   expiresIn: Date,
   type: TokenType,
 ) => {
   try {
-    const secret = getAuthTokenSecret(type);
-    return await new SignJWT({ userId })
+    const secret = getTokenSecret(type);
+    return await new SignJWT(payload)
       .setProtectedHeader({ alg: "HS256", typ: "JWT" })
       .setIssuedAt()
       .setExpirationTime(expiresIn)
@@ -31,9 +25,26 @@ export const generateAuthToken = async (
   }
 };
 
-export const verifyAuthToken = async (token: string, type: TokenType) => {
+export const getTokenSecret = (type: TokenType) => {
+  let secret = "";
+  switch (type) {
+    case "ACCESS":
+      secret = env.ACCESS_TOKEN_SECRET;
+      break;
+    case "REFRESH":
+      secret = env.REFRESH_TOKEN_SECRET;
+      break;
+    case "VERIFICATION":
+      secret = env.VERIFICATION_TOKEN_SECRET;
+      break;
+  }
+
+  return new TextEncoder().encode(secret);
+};
+
+export const verifyToken = async (token: string, type: TokenType) => {
   try {
-    const secret = getAuthTokenSecret(type);
+    const secret = getTokenSecret(type);
     const { payload } = await jwtVerify(token, secret);
     return payload;
   } catch (error) {

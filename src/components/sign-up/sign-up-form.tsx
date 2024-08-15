@@ -13,13 +13,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { SignUpSchema } from "@/zod/schema";
 import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
-import { SignUpType } from "@/lib/zod/types";
 import toast from "react-hot-toast";
 import { EmailInUseError } from "@/lib/errors";
-import { signUpAction } from "@/app/(auth)/sign-up/actions";
+import { SignUpSchema } from "@/schemas/authSchema";
+import { SignUpType } from "@/types/authTypes";
+import { signUpAction } from "@/actions/sign-up";
 
 export default function SignUpForm() {
   const form = useForm<SignUpType>({
@@ -44,11 +44,12 @@ export default function SignUpForm() {
         );
       } else {
         console.error(result.error.name);
-        toast.error(result.error.message);
+        toast.error(result.error.message, { duration: 10000 });
       }
     } else {
-      form.reset();
-      toast.success(result.data?.message as string, { duration: 30000 });
+      toast.success(`Verification link was sent to ${values.email}`, {
+        duration: 30000,
+      });
     }
   };
 

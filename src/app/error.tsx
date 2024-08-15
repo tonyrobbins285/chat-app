@@ -15,8 +15,10 @@ export default function Error({
   }, [error]);
 
   return (
-    <div>
-      <h2>Something went wrong!</h2>
+    <div className="w-full max-w-md space-y-8 bg-white px-10 py-8 shadow-md">
+      <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-gray-900">
+        Something went wrong!
+      </h2>
       <button
         onClick={
           // Attempt to recover by trying to re-render the segment

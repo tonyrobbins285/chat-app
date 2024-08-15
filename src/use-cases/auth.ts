@@ -3,31 +3,25 @@ import "server-only";
 import {
   ClientError,
   EmailInUseError,
+  EmailVerificationError,
   InternalServerError,
   InvalidCredentialsError,
-  TransactionError,
 } from "@/lib/errors";
-import { CLIENT_URL } from "@/lib/constants";
 import {
   generateHashPassword,
   generateSalt,
   verifyPassword,
 } from "@/lib/auth/password";
-import { sendEmail } from "@/lib/utils/email";
+import { sendVerificationEmail } from "@/lib/utils/email";
 import { createSession } from "@/lib/auth/session";
-import { SignInType, SignUpType } from "@/types/authTypes";
-import { createTransaction } from "@/lib/utils/transaction";
-import {
-  createVerifyEmailToken,
-  deleteVerifyEmailToken,
-  getVerifyEmailToken,
-} from "@/data-access/token";
 import { getUserByEmail } from "@/data-access/user";
 import { createAccount, getAccount } from "@/data-access/account";
+import { verifyToken } from "@/lib/auth/token";
+import { AuthType } from "@/lib/types";
 
-export async function signUp(inputs: SignUpType) {
+export async function signUp(inputs: AuthType) {
   try {
-    const { email, password } = inputs;
+    const { email } = inputs;
     const user = await getUserByEmail({ email });
     if (user) {
       const account = await getAccount({
@@ -36,52 +30,20 @@ export async function signUp(inputs: SignUpType) {
       });
       if (account) throw new EmailInUseError();
     }
-
-    await createTransaction(async (tx) => {
-      try {
-        const salt = generateSalt();
-        const hashPassword = generateHashPassword(password, salt);
-
-        await createAccount(
-          {
-            data: {
-              type: "credentials",
-              salt,
-              hashPassword,
-              user: {
-                connectOrCreate: { where: { email }, create: { email } },
-              },
-            },
-          },
-          tx,
-        );
-
-        const verificationToken = await createVerifyEmailToken({ email }, tx);
-        const verificationLink = `${CLIENT_URL}/verify-email?token=${verificationToken.token}&email=${email}`;
-
-        await sendEmail({
-          email,
-          subject: "Verify your email.",
-          html: `<p>Click <a href="${verificationLink}">here</a> to verify your email.</p>`,
-        });
-      } catch (error) {
-        console.error("Transaction error during sign up:", error);
-        throw new TransactionError("Failed to complete sign up transaction.");
-      }
-    });
+    await sendVerificationEmail(inputs);
   } catch (error) {
     if (error instanceof ClientError) {
       throw error;
     } else {
       console.error("Failed to sign up:", error);
-      throw new InternalServerError("Sign up failed. Please try again.");
+      throw new InternalServerError("Could not sign in.");
     }
   }
 }
 
-export async function signIn(inputs: SignInType) {
+export async function signIn(inputs: AuthType) {
   try {
-    const { email, password } = inputs;
+    const { email } = inputs;
 
     const user = await getUserByEmail({ email });
 
@@ -95,75 +57,48 @@ export async function signIn(inputs: SignInType) {
       throw new InvalidCredentialsError();
     }
 
-    const accessToken = await createSession(user.id);
-
-    return accessToken;
+    return await createSession(user.id);
   } catch (error) {
     if (error instanceof ClientError) {
       throw error;
     } else {
       console.error("Failed to sign up:", error);
-      throw new InternalServerError("Sign up failed. Please try again.");
+      throw new InternalServerError("Could not sign up.");
     }
   }
 }
 
-export const verifyEmail = async ({
-  token,
-  userId,
-}: {
-  token: string;
-  userId: string;
-}) => {
+export const verifyEmail = async ({ token }: { token: string }) => {
   try {
-    const user = await getUserById(userId);
-
-    if (user?.emailVerified) {
-      return {
-        message: "Your email was already verified!",
-      };
+    const payload = await verifyToken(token, "VERIFICATION");
+    const { email, password } = payload;
+    if (
+      !email ||
+      !password ||
+      typeof email !== "string" ||
+      typeof password !== "string"
+    ) {
+      throw new EmailVerificationError();
     }
+    const salt = generateSalt();
+    const hashPassword = generateHashPassword(password, salt);
 
-    const tokenEntry = await getVerifyEmailToken(token);
-
-    if (!tokenEntry) {
-      throw new Error("Failed to verify email.");
-    }
-
-    await updateUserVerification(userId);
-    await deleteVerifyEmailToken(token);
-
-    return {
-      message: "Your email has been verified!",
-    };
+    await createAccount({
+      data: {
+        type: "credentials",
+        salt,
+        hashPassword,
+        user: {
+          connectOrCreate: { where: { email }, create: { email } },
+        },
+      },
+    });
   } catch (error) {
-    throw new Error("Failed to verify email.");
+    if (error instanceof ClientError) {
+      throw error;
+    } else {
+      console.error("Failed to verify email:", error);
+      throw new InternalServerError("Could not verify email.");
+    }
   }
-};
-
-export const sendVerification = async (email: string) => {
-  const user = await getUserByEmail(email);
-
-  if (!user) {
-    throw new UserDoesNotExistError();
-  }
-
-  if (user.emailVerified) {
-    return {
-      message: `Your email is already verified!`,
-    };
-  }
-
-  const verificationToken = await createVerifyEmailToken(user.id);
-  const verificationLink = `${CLIENT_URL}/verify-email?token=${verificationToken.token}`;
-
-  await sendEmail({
-    email,
-    subject: "Verify your email.",
-    html: `<p>Click <a href="${verificationLink}">here</a> to verify your email.</p>`,
-  });
-
-  return {
-    message: `Email verification was sent to ${email}`,
-  };
 };

@@ -2,12 +2,13 @@ import "server-only";
 
 import { ClientError } from "../errors";
 import { isRedirectError } from "next/dist/client/components/redirect";
+import { ZodError } from "zod";
 
-type AsyncActionFunction<T> = (inputs: T) => Promise<Record<string, string>>;
+// type AsyncActionFunction<T> = (inputs: T) => Promise<Record<string, string>>;
+type AsyncActionFunction<T> = (inputs: T) => Promise<void>;
 
 type ActionResult =
   | {
-      data?: Record<string, string>;
       success: true;
     }
   | {
@@ -19,18 +20,20 @@ type ActionResult =
     };
 
 export const handleAsyncAction =
-  <T>(fn: AsyncActionFunction<T>, errorFile?: string) =>
+  <T>(fn: AsyncActionFunction<T>, errorFile: string) =>
   async (inputs: T): Promise<ActionResult> => {
     try {
-      const result = await fn(inputs);
+      await fn(inputs);
 
       return {
-        data: result,
         success: true,
       };
     } catch (error) {
       if (isRedirectError(error)) {
         throw error;
+      }
+
+      if (error instanceof ZodError) {
       }
 
       let message = "Internal Error. Please try again!";
@@ -40,9 +43,9 @@ export const handleAsyncAction =
         message = error.message;
         name = error.name;
       } else {
-        console.error(error);
-        console.error("Error in file: ", errorFile);
+        console.error(`Error in file '${errorFile}':`, error);
       }
+
       return {
         error: {
           message,

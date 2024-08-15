@@ -22,4 +22,8 @@ export const env = {
     "REFRESH_TOKEN_SECRET",
     process.env.REFRESH_TOKEN_SECRET,
   ),
+  VERIFICATION_TOKEN_SECRET: validateEnv(
+    "VERIFICATION_TOKEN_SECRET",
+    process.env.VERIFICATION_TOKEN_SECRET,
+  ),
 };

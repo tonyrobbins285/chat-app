@@ -1,10 +1,14 @@
 import { cookies } from "next/headers";
 import { OAuth2RequestError } from "arctic";
-// import { createGithubUserUseCase } from "@/use-cases/users";
-// import { getAccountByGithubIdUseCase } from "@/use-cases/accounts";
-import { github } from "@/lib/arctic";
-// import { getUserByGithubId } from "@/data-access/users";
-import { getAccountByGithubId } from "@/data-access/accounts";
+import { github } from "@/lib/oauth-provider/github";
+import { createAccount, getAccountByGithubId } from "@/data-access/account";
+import { createGithubUser } from "@/use-cases/user";
+import { createSession } from "@/lib/auth/session";
+import {
+  getUserByEmail,
+  getUserById,
+  updateUserVerification,
+} from "@/data-access/user";
 
 export async function GET(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -39,11 +43,41 @@ export async function GET(request: Request): Promise<Response> {
         },
       },
     );
-    const githubUser: GitHubUser = await githubUserResponse.json();
-    const githubEmail: GitHubEmail = await githubEmailResponse.json();
-    const existingAccount = await getAccountByGithubId(githubUser.id);
 
-    if (existingAccount) {
+    const githubUser: GitHubUser = await githubUserResponse.json();
+    const githubEmails: GitHubEmail[] = await githubEmailResponse.json();
+    const primaryEmail = githubEmails.find(
+      (email) => email.primary,
+    ) as GitHubEmail;
+
+    const user = await getUserByEmail({ email: primaryEmail.email });
+
+    const existingAccount = await getAccountByGithubId({
+      githubId: githubUser.id,
+    });
+
+    if (!existingAccount) {
+      const account = await createAccount({
+        data: {
+          provider: "github",
+          providerAccountId: githubUser.id,
+          type: "oauth",
+          user: {
+            connectOrCreate: {
+              where: {
+                email: primaryEmail.email,
+              },
+              create: {
+                email: primaryEmail.email,
+                emailVerified: new Date(),
+              },
+            },
+          },
+        },
+      });
+
+      await createSession(account.userId);
+
       return new Response(null, {
         status: 302,
         headers: {
@@ -52,19 +86,21 @@ export async function GET(request: Request): Promise<Response> {
       });
     }
 
-    // if (!githubUser.email) {
-    //   const githubUserEmailResponse = await fetch(
-    //     "https://api.github.com/user/emails",
-    //     {
-    //       headers: {
-    //         Authorization: `Bearer ${tokens.accessToken}`,
-    //       },
-    //     },
-    //   );
-    //   const githubUserEmails = await githubUserEmailResponse.json();
-    // }
+    const exisitingUser = await getUserById({ id: existingAccount.userId });
+    if (exisitingUser) {
+      if (!exisitingUser.emailVerified) {
+        await updateUserVerification({ id: exisitingUser.id });
+      }
+      await createSession(existingAccount.id);
+      return new Response(null, {
+        status: 302,
+        headers: {
+          Location: "/",
+        },
+      });
+    }
 
-    // const userId = await createGithubUserUseCase(githubUser);
+    const userId = await createGithubUser(githubUser);
     // await setSession(userId);
     return new Response(null, {
       status: 302,
@@ -74,12 +110,6 @@ export async function GET(request: Request): Promise<Response> {
     });
   } catch (e) {
     console.error(e);
-    if (e instanceof OAuth2RequestError) {
-      // Invalid authorization code, credentials, or redirect URI
-      return new Response(null, {
-        status: 400,
-      });
-    }
     if (e instanceof OAuth2RequestError) {
       // invalid code
       return new Response(null, {
@@ -100,4 +130,5 @@ export interface GitHubUser {
 export interface GitHubEmail {
   email: string;
   verified: boolean;
+  primary: boolean;
 }
