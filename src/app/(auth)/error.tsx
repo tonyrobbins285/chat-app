@@ -19,7 +19,7 @@ export default function Error({
   return (
     <>
       <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-gray-900">
-        Something went wrong!
+        {error ? error.message : "Something went wrong!"}
       </h2>
       <div className="flex flex-col items-center gap-4">
         <Button

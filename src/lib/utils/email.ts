@@ -6,7 +6,7 @@ import { CLIENT_URL } from "@/lib/constants";
 import { InternalServerError } from "@/lib/errors";
 import { generateToken } from "@/lib/auth/token";
 
-export async function sendEmail({
+export const sendEmail = async ({
   email,
   subject,
   html,
@@ -14,7 +14,7 @@ export async function sendEmail({
   email: string;
   subject: string;
   html: string;
-}) {
+}) => {
   try {
     const transporter = nodemailer.createTransport({
       host: env.EMAIL_HOST,
@@ -38,23 +38,19 @@ export async function sendEmail({
     );
     throw new Error(`Failed to send email to ${email}`);
   }
-}
+};
 
-export async function sendVerificationEmail({
+export const sendVerificationEmail = async ({
   email,
   password,
 }: {
   email: string;
   password: string;
-}) {
+}) => {
   try {
-    const verificationToken = await generateToken(
-      { email, password },
-      new Date(),
-      "VERIFICATION",
-    );
+    const { token } = await generateToken({ email, password }, "VERIFICATION");
 
-    const verificationLink = `${CLIENT_URL}/verify-email?token=${verificationToken}`;
+    const verificationLink = `${CLIENT_URL}/verify-email?token=${token}`;
 
     await sendEmail({
       email,
@@ -65,4 +61,4 @@ export async function sendVerificationEmail({
     console.error("Failed to send verification email:", error);
     throw new InternalServerError("Could not send verification email.");
   }
-}
+};

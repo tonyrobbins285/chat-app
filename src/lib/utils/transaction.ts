@@ -1,3 +1,5 @@
+import "server-only";
+
 import { prisma } from "@/lib/prisma";
 import { JsPromise } from "@prisma/client/runtime/library";
 
@@ -8,8 +10,8 @@ export type TransactionType = Omit<
   "$connect" | "$disconnect" | "$on" | "$transaction" | "$use" | "$extends"
 >;
 
-export async function createTransaction(
+export const createTransaction = async (
   cb: (tx: TransactionType) => JsPromise<unknown>,
-) {
+) => {
   await prisma.$transaction(cb);
-}
+};

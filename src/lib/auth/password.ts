@@ -1,5 +1,4 @@
 "use server";
-import { SignInType } from "@/types/authTypes";
 import bcrypt from "bcryptjs";
 import {
   ClientError,
@@ -8,37 +7,37 @@ import {
 } from "@/lib/errors";
 import { getUserByEmail } from "@/data-access/user";
 import { getAccount } from "@/data-access/account";
+import { AuthType } from "@/lib/types";
+import { ACCOUNT_TYPES } from "@/lib/constants";
 
-export const generateHashPassword = (
-  plaintextPassword: string,
-  salt: string,
-) => {
-  return bcrypt.hashSync(plaintextPassword, salt);
+export const generateHashPassword = async (plaintextPassword: string) => {
+  return await bcrypt.hash(plaintextPassword, 10);
 };
 
-export const generateSalt = () => {
-  return bcrypt.genSaltSync(10);
-};
-
-export async function verifyPassword(inputs: SignInType) {
+export const verifyPassword = async ({ email, password }: AuthType) => {
   try {
-    const { email, password } = inputs;
-
     const user = await getUserByEmail({ email });
 
     if (!user) {
       throw new InvalidCredentialsError();
     }
 
-    const account = await getAccount({ type: "credentials", userId: user.id });
+    const account = await getAccount({
+      where: { type: ACCOUNT_TYPES.CREDENTIALS, userId: user.id },
+    });
 
     if (!account) {
       throw new InvalidCredentialsError();
     }
 
-    const hash = generateHashPassword(password, account.salt!);
+    const isCorrectPassword = await bcrypt.compare(
+      password,
+      account.hashPassword!,
+    );
 
-    return hash === account.hashPassword;
+    if (!isCorrectPassword) {
+      throw new InvalidCredentialsError();
+    }
   } catch (error) {
     if (error instanceof ClientError) {
       throw error;
@@ -47,4 +46,4 @@ export async function verifyPassword(inputs: SignInType) {
       throw new InternalServerError("Could not verify password.");
     }
   }
-}
+};

@@ -1,31 +1,29 @@
 "use server";
-import { createAuthToken } from "@/data-access/token";
+import { createRefreshToken } from "@/data-access/token";
 import { cookies } from "next/headers";
-import { verifyAuthToken } from "@/lib/auth/token";
 import { InternalServerError } from "@/lib/errors";
-
-export const getClientSession = async () => {
-  return "x";
-};
+import { generateToken, verifyToken } from "@/lib/auth/token";
 
 export const createSession = async (userId: string) => {
   try {
-    const accessToken = await createAuthToken({ userId }, "ACCESS");
-    const refreshToken = await createAuthToken({ userId }, "REFRESH");
+    const refreshToken = await createRefreshToken({ userId });
+    const { token, expires } = await generateToken({ userId }, "ACCESS");
 
     cookies().set("refreshToken", refreshToken.token, {
       secure: true,
       httpOnly: true,
       expires: refreshToken.expires,
       path: "/",
-      sameSite: "strict",
+      sameSite: "lax",
     });
-    cookies().set("authorization", `Bearer ${accessToken.token}`, {
+    cookies().set("authorization", `Bearer ${token}`, {
       secure: true,
-      expires: accessToken.expires,
+      expires,
       path: "/",
-      sameSite: "strict",
+      sameSite: "lax",
     });
+
+    return token;
   } catch (error) {
     console.error(`Failed to create session: `, error);
     throw new InternalServerError(`Could not create session.`);
@@ -43,7 +41,7 @@ export const getServerSession = async () => {
     }
 
     const token = authToken.split(" ")[1];
-    return await verifyAuthToken(token, "ACCESS");
+    return await verifyToken(token, "ACCESS");
     //  decoded =  {
     //   userId: '',
     //   iat: 1723222346,

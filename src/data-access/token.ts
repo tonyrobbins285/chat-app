@@ -1,16 +1,12 @@
+import "server-only";
+
 import { generateToken } from "@/lib/auth/token";
-import { TOKEN_TTL } from "@/lib/constants";
 import { InternalServerError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
-import { TokenType } from "@/lib/types";
 
-export const createAuthToken = async (
-  { userId }: { userId: string },
-  type: TokenType,
-) => {
+export const createRefreshToken = async ({ userId }: { userId: string }) => {
   try {
-    const expires = new Date(Date.now() + TOKEN_TTL[type]);
-    const token = await generateToken({ userId }, expires, type);
+    const { token, expires } = await generateToken({ userId }, "REFRESH");
 
     const data = {
       token,
@@ -18,17 +14,24 @@ export const createAuthToken = async (
       userId,
     };
 
-    if (type === "ACCESS") {
-      return await prisma.accessToken.create({ data });
-    } else if (type === "REFRESH") {
-      return await prisma.refreshToken.create({ data });
-    } else {
-      throw new Error("Invalid token type");
+    return await prisma.refreshToken.create({ data });
+  } catch (error) {
+    console.error(`Failed to create refresh token:`, error);
+    throw new InternalServerError(`Could not create refresh token.`);
+  }
+};
+
+export const expiredRefreshToken = async ({ userId }: { userId: string }) => {
+  try {
+    const expiredToken = await prisma.refreshToken.findMany({
+      where: { userId, expires: { lte: new Date() } },
+    });
+
+    if (expiredToken) {
+      await prisma.refreshToken.deleteMany({ where: { userId } });
     }
   } catch (error) {
-    console.error(`Failed to create ${type.toLowerCase()} token:`, error);
-    throw new InternalServerError(
-      `Could not create ${type.toLowerCase()} token.`,
-    );
+    console.error(`Failed to delete expired refresh token:`, error);
+    throw new InternalServerError(`Could not delete expired refresh token.`);
   }
 };

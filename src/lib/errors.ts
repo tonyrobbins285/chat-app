@@ -33,6 +33,13 @@ export class EmailVerificationError extends ClientError {
   }
 }
 
+export class InvalidTokenError extends ClientError {
+  constructor() {
+    super("Invalid Token.");
+    this.name = "InvalidTokenError";
+  }
+}
+
 // Server Error
 export class UserNotFoundError extends ServerError {
   constructor() {

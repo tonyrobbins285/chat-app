@@ -1,16 +1,18 @@
 import { cookies } from "next/headers";
 import { OAuth2RequestError } from "arctic";
 import { github } from "@/lib/oauth-provider/github";
-import { createAccount, getAccountByGithubId } from "@/data-access/account";
-import { createGithubUser } from "@/use-cases/user";
-import { createSession } from "@/lib/auth/session";
 import {
-  getUserByEmail,
-  getUserById,
-  updateUserVerification,
-} from "@/data-access/user";
+  createAccount,
+  getAccount,
+  getAccountByUserId,
+  updateAccount,
+} from "@/data-access/account";
+import { createSession } from "@/lib/auth/session";
+import { deleteUserById, getUserById } from "@/data-access/user";
+import { CLIENT_URL } from "@/lib/constants";
+import { getNameFromEmail } from "@/lib/utils";
 
-export async function GET(request: Request): Promise<Response> {
+export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
@@ -25,10 +27,6 @@ export async function GET(request: Request): Promise<Response> {
   try {
     const tokens = await github.validateAuthorizationCode(code);
     const accessToken = tokens.accessToken();
-    const accessTokenExpiresAt = tokens.accessTokenExpiresAt();
-    const refreshToken = tokens.refreshToken();
-    const refreshTokenExpiresAt = tokens.refreshTokenExpiresAt();
-    const idToken = tokens.idToken();
 
     const githubUserResponse = await fetch("https://api.github.com/user", {
       headers: {
@@ -50,17 +48,19 @@ export async function GET(request: Request): Promise<Response> {
       (email) => email.primary,
     ) as GitHubEmail;
 
-    const user = await getUserByEmail({ email: primaryEmail.email });
-
-    const existingAccount = await getAccountByGithubId({
-      githubId: githubUser.id,
+    const existingAccount = await getAccount({
+      where: {
+        type: "oauth",
+        provider: "github",
+        providerAccountId: String(githubUser.id),
+      },
     });
 
     if (!existingAccount) {
       const account = await createAccount({
         data: {
           provider: "github",
-          providerAccountId: githubUser.id,
+          providerAccountId: String(githubUser.id),
           type: "oauth",
           user: {
             connectOrCreate: {
@@ -69,7 +69,8 @@ export async function GET(request: Request): Promise<Response> {
               },
               create: {
                 email: primaryEmail.email,
-                emailVerified: new Date(),
+                name: githubUser.name,
+                image: githubUser.avatar_url,
               },
             },
           },
@@ -77,37 +78,45 @@ export async function GET(request: Request): Promise<Response> {
       });
 
       await createSession(account.userId);
-
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: process.env.AFTER_LOGIN_URL!,
-        },
-      });
-    }
-
-    const exisitingUser = await getUserById({ id: existingAccount.userId });
-    if (exisitingUser) {
-      if (!exisitingUser.emailVerified) {
-        await updateUserVerification({ id: exisitingUser.id });
+    } else {
+      const user = await getUserById({ id: existingAccount.userId });
+      if (!user) {
+        throw new Error("Unexpected error at: api/auth/callback/github");
       }
-      await createSession(existingAccount.id);
-      return new Response(null, {
-        status: 302,
-        headers: {
-          Location: "/",
-        },
-      });
+      if (primaryEmail.email !== user.email) {
+        const account = await updateAccount({
+          where: {
+            id: existingAccount.id,
+          },
+          data: {
+            user: {
+              connectOrCreate: {
+                where: {
+                  email: primaryEmail.email,
+                },
+                create: {
+                  email: primaryEmail.email,
+                  name: githubUser.name || getNameFromEmail(primaryEmail.email),
+                  image: githubUser.avatar_url,
+                },
+              },
+            },
+          },
+        });
+        const otherAccount = await getAccountByUserId({
+          userId: user.id,
+        });
+        if (!otherAccount) {
+          await deleteUserById({ id: user.id });
+        }
+
+        await createSession(account.userId);
+      } else {
+        await createSession(user.id);
+      }
     }
 
-    const userId = await createGithubUser(githubUser);
-    // await setSession(userId);
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: process.env.AFTER_LOGIN_URL!,
-      },
-    });
+    return Response.redirect(new URL("/", CLIENT_URL));
   } catch (e) {
     console.error(e);
     if (e instanceof OAuth2RequestError) {

@@ -1,10 +1,8 @@
 import "server-only";
 
-import { ClientError } from "../errors";
+import { ClientError } from "@/lib/errors";
 import { isRedirectError } from "next/dist/client/components/redirect";
-import { ZodError } from "zod";
 
-// type AsyncActionFunction<T> = (inputs: T) => Promise<Record<string, string>>;
 type AsyncActionFunction<T> = (inputs: T) => Promise<void>;
 
 type ActionResult =
@@ -31,9 +29,6 @@ export const handleAsyncAction =
     } catch (error) {
       if (isRedirectError(error)) {
         throw error;
-      }
-
-      if (error instanceof ZodError) {
       }
 
       let message = "Internal Error. Please try again!";

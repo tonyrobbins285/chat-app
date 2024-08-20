@@ -17,27 +17,27 @@ import { cn } from "@/lib/utils";
 import FormPassword from "./form-password";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { SignInType } from "@/types/authTypes";
-import { SignUpSchema } from "@/schemas/authSchema";
+import { SignInSchema } from "@/schemas/authSchema";
 import toast from "react-hot-toast";
 import { signInAction } from "@/actions/sign-in";
+import { AuthType } from "@/lib/types";
 
 export default function SignInForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const url = searchParams.get("from") || "/";
 
-  const form = useForm<SignInType>({
+  const form = useForm<AuthType>({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
-    resolver: zodResolver(SignUpSchema),
+    resolver: zodResolver(SignInSchema),
     defaultValues: {
       email: "",
       password: "",
     },
   });
 
-  const onSubmit = async (values: SignInType) => {
+  const onSubmit = async (values: AuthType) => {
     const result = await signInAction(values);
     if (!result.success) {
       console.error(result.error.name);

@@ -7,29 +7,31 @@ import {
   InternalServerError,
   InvalidCredentialsError,
 } from "@/lib/errors";
-import {
-  generateHashPassword,
-  generateSalt,
-  verifyPassword,
-} from "@/lib/auth/password";
+import { generateHashPassword, verifyPassword } from "@/lib/auth/password";
 import { sendVerificationEmail } from "@/lib/utils/email";
 import { createSession } from "@/lib/auth/session";
 import { getUserByEmail } from "@/data-access/user";
 import { createAccount, getAccount } from "@/data-access/account";
 import { verifyToken } from "@/lib/auth/token";
 import { AuthType } from "@/lib/types";
+import { ACCOUNT_TYPES } from "@/lib/constants";
+import { getNameFromEmail } from "@/lib/utils";
 
-export async function signUp(inputs: AuthType) {
+export const signUp = async (inputs: AuthType) => {
   try {
     const { email } = inputs;
-    const user = await getUserByEmail({ email });
-    if (user) {
-      const account = await getAccount({
-        type: "credentials",
-        userId: user.id,
+    await checkEmailInUseWithCredentials(email);
+    const existingUser = await getUserByEmail({ email });
+    if (existingUser) {
+      const existingAccount = await getAccount({
+        where: {
+          type: ACCOUNT_TYPES.CREDENTIALS,
+          userId: existingUser.id,
+        },
       });
-      if (account) throw new EmailInUseError();
+      if (existingAccount) throw new EmailInUseError();
     }
+
     await sendVerificationEmail(inputs);
   } catch (error) {
     if (error instanceof ClientError) {
@@ -39,9 +41,31 @@ export async function signUp(inputs: AuthType) {
       throw new InternalServerError("Could not sign in.");
     }
   }
-}
+};
 
-export async function signIn(inputs: AuthType) {
+export const checkEmailInUseWithCredentials = async (email: string) => {
+  try {
+    const existingUser = await getUserByEmail({ email });
+    if (existingUser) {
+      const existingAccount = await getAccount({
+        where: {
+          type: ACCOUNT_TYPES.CREDENTIALS,
+          userId: existingUser.id,
+        },
+      });
+      if (existingAccount) throw new EmailInUseError();
+    }
+  } catch (error) {
+    if (error instanceof ClientError) {
+      throw error;
+    } else {
+      console.error("Failed to check email:", error);
+      throw new InternalServerError("Could not check email.");
+    }
+  }
+};
+
+export const signIn = async (inputs: AuthType) => {
   try {
     const { email } = inputs;
 
@@ -51,11 +75,7 @@ export async function signIn(inputs: AuthType) {
       throw new InvalidCredentialsError();
     }
 
-    const isCorrectPassword = await verifyPassword(inputs);
-
-    if (!isCorrectPassword) {
-      throw new InvalidCredentialsError();
-    }
+    await verifyPassword(inputs);
 
     return await createSession(user.id);
   } catch (error) {
@@ -66,7 +86,7 @@ export async function signIn(inputs: AuthType) {
       throw new InternalServerError("Could not sign up.");
     }
   }
-}
+};
 
 export const verifyEmail = async ({ token }: { token: string }) => {
   try {
@@ -80,16 +100,26 @@ export const verifyEmail = async ({ token }: { token: string }) => {
     ) {
       throw new EmailVerificationError();
     }
-    const salt = generateSalt();
-    const hashPassword = generateHashPassword(password, salt);
+    const existingAccount = await getAccount({
+      where: {
+        type: ACCOUNT_TYPES.CREDENTIALS,
+        user: { email: email },
+      },
+    });
+    if (existingAccount) {
+      return;
+    }
 
+    const hashPassword = await generateHashPassword(password);
     await createAccount({
       data: {
-        type: "credentials",
-        salt,
+        type: ACCOUNT_TYPES.CREDENTIALS,
         hashPassword,
         user: {
-          connectOrCreate: { where: { email }, create: { email } },
+          connectOrCreate: {
+            where: { email },
+            create: { email, name: getNameFromEmail(email) },
+          },
         },
       },
     });

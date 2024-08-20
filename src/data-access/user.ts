@@ -1,3 +1,5 @@
+import "server-only";
+
 import { InternalServerError } from "@/lib/errors";
 import { prisma } from "@/lib/prisma";
 import { TransactionType } from "@/lib/utils/transaction";
@@ -35,13 +37,15 @@ export const getUserByEmail = async (
 };
 
 export const createUser = async (
-  { email }: { email: string },
+  { email, name, image }: { email: string; name?: string; image?: string },
   tx: TransactionType = prisma,
 ) => {
   try {
     return await tx.user.create({
       data: {
         email,
+        name,
+        image,
       },
     });
   } catch (error) {
@@ -50,14 +54,13 @@ export const createUser = async (
   }
 };
 
-export const updateUserVerification = async ({ id }: { id: string }) => {
+export const deleteUserById = async ({ id }: { id: string }) => {
   try {
-    return await prisma.user.update({
+    return await prisma.user.delete({
       where: { id },
-      data: { emailVerified: new Date() },
     });
   } catch (error) {
-    console.error(`Failed to update user verification:`, error);
-    throw new InternalServerError(`Could not update user verification.`);
+    console.error(`Failed to delete user:`, error);
+    throw new InternalServerError(`Could not delete user.`);
   }
 };

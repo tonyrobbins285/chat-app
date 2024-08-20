@@ -39,6 +39,14 @@ export default function LoginPage() {
           </Link>
         </p>
         <SignInForm />
+        <div className="mt-4 flex justify-center">
+          <Link
+            href="/forgot-password"
+            className="font-semibold text-blue-700 hover:inline-block hover:bg-gradient-to-r hover:from-blue-600 hover:via-green-500 hover:to-indigo-400 hover:bg-clip-text hover:text-transparent"
+          >
+            Forgot password?
+          </Link>
+        </div>
       </div>
     </>
   );
