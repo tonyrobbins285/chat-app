@@ -1,14 +1,12 @@
-"use server";
+import "server-only";
+
 import bcrypt from "bcryptjs";
-import {
-  ClientError,
-  InternalServerError,
-  InvalidCredentialsError,
-} from "@/lib/errors";
 import { getUserByEmail } from "@/data-access/user";
 import { getAccount } from "@/data-access/account";
 import { AuthType } from "@/lib/types";
 import { ACCOUNT_TYPES } from "@/lib/constants";
+import { ClientError, InvalidCredentialsError } from "@/lib/errors/client";
+import { InternalServerError } from "@/lib/errors/server";
 
 export const generateHashPassword = async (plaintextPassword: string) => {
   return await bcrypt.hash(plaintextPassword, 10);

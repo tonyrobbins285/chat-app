@@ -5,4 +5,4 @@ import { verifyEmail } from "@/use-cases/auth";
 
 export const verifyEmailAction = handleAsyncAction(async (token: string) => {
   await verifyEmail({ token });
-}, "verify email action");
+}, "verifyEmailAction");

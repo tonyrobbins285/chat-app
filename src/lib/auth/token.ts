@@ -1,11 +1,12 @@
-"use server";
+import "server-only";
 
 import { SignJWT, jwtVerify } from "jose";
 import { TokenType } from "@/lib/types";
 import { env } from "@/lib/env";
-import { InternalServerError, InvalidTokenError } from "@/lib/errors";
+import { InternalServerError } from "@/lib/errors/server";
 import { TOKEN_TTL } from "@/lib/constants";
 import { JWTClaimValidationFailed, JWTExpired, JWTInvalid } from "jose/errors";
+import { InvalidTokenError } from "@/lib/errors/client";
 
 export const generateToken = async (
   payload: Record<string, string>,
@@ -38,14 +39,19 @@ export const getTokenSecret = async (type: TokenType) => {
       return new TextEncoder().encode(env.REFRESH_TOKEN_SECRET);
     case "VERIFICATION":
       return new TextEncoder().encode(env.VERIFICATION_TOKEN_SECRET);
+    case "RESET":
+      return new TextEncoder().encode(env.RESET_TOKEN_SECRET);
   }
 };
 
-export const verifyToken = async (token: string, type: TokenType) => {
+export const verifyToken = async <T>(
+  token: string,
+  type: TokenType,
+): Promise<T> => {
   try {
     const secret = await getTokenSecret(type);
     const verifiedToken = await jwtVerify(token, secret);
-    return verifiedToken.payload;
+    return verifiedToken.payload as T;
   } catch (error) {
     if (
       error instanceof (JWTExpired || JWTInvalid || JWTClaimValidationFailed)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { CLIENT_URL } from "@/lib/constants";
 import { AUTH_ROUTES } from "@/routes";
-import { getServerSession } from "./lib/auth/session";
+import { getServerSession } from "@/lib/auth/session";
 import { getLoginUrl } from "@/lib/utils/url";
 
 export async function middleware(req: NextRequest) {

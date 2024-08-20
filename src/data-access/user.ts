@@ -1,6 +1,6 @@
 import "server-only";
 
-import { InternalServerError } from "@/lib/errors";
+import { InternalServerError } from "@/lib/errors/server";
 import { prisma } from "@/lib/prisma";
 import { TransactionType } from "@/lib/utils/transaction";
 

@@ -3,10 +3,9 @@ import "server-only";
 import {
   ClientError,
   EmailInUseError,
-  EmailVerificationError,
-  InternalServerError,
   InvalidCredentialsError,
-} from "@/lib/errors";
+} from "@/lib/errors/client";
+import { InternalServerError } from "@/lib/errors/server";
 import { generateHashPassword, verifyPassword } from "@/lib/auth/password";
 import { sendVerificationEmail } from "@/lib/utils/email";
 import { createSession } from "@/lib/auth/session";
@@ -90,16 +89,11 @@ export const signIn = async (inputs: AuthType) => {
 
 export const verifyEmail = async ({ token }: { token: string }) => {
   try {
-    const payload = await verifyToken(token, "VERIFICATION");
-    const { email, password } = payload;
-    if (
-      !email ||
-      !password ||
-      typeof email !== "string" ||
-      typeof password !== "string"
-    ) {
-      throw new EmailVerificationError();
-    }
+    const { email, password } = await verifyToken<AuthType>(
+      token,
+      "VERIFICATION",
+    );
+
     const existingAccount = await getAccount({
       where: {
         type: ACCOUNT_TYPES.CREDENTIALS,
@@ -129,6 +123,24 @@ export const verifyEmail = async ({ token }: { token: string }) => {
     } else {
       console.error("Failed to verify email:", error);
       throw new InternalServerError("Could not verify email.");
+    }
+  }
+};
+
+export const resetPassword = async ({
+  token,
+  password,
+}: {
+  token: string;
+  password: string;
+}) => {
+  try {
+  } catch (error) {
+    if (error instanceof ClientError) {
+      throw error;
+    } else {
+      console.error("Failed to reset password:", error);
+      throw new InternalServerError("Could not reset password.");
     }
   }
 };

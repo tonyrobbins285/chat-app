@@ -1,7 +1,7 @@
 import "server-only";
 
 import { generateToken } from "@/lib/auth/token";
-import { InternalServerError } from "@/lib/errors";
+import { InternalServerError } from "@/lib/errors/server";
 import { prisma } from "@/lib/prisma";
 
 export const createRefreshToken = async ({ userId }: { userId: string }) => {

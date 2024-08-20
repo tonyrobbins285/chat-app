@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import SignUpForm from "../../../components/sign-up/sign-up-form";
+import SignUpForm from "@/components/sign-up/sign-up-form";
 
 export const metadata: Metadata = {
   title: "Register",

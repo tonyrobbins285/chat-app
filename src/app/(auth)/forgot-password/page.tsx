@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,37 +13,29 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import FormPassword from "./form-password";
-import { useSearchParams } from "next/navigation";
-import { useRouter } from "next/navigation";
-import { SignInSchema } from "@/schemas/authSchema";
+import { ForgotPasswordSchema } from "@/schemas/authSchema";
 import toast from "react-hot-toast";
-import { signInAction } from "@/actions/sign-in";
-import { AuthType } from "@/lib/types";
+import { ForgotPasswordFormType } from "@/lib/types";
+import { forgotPasswordAction } from "@/actions/forgot-password";
 
-export default function SignInForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const url = searchParams.get("from") || "/";
-
-  const form = useForm<AuthType>({
+export default function ForgotPasswordPage() {
+  const form = useForm<ForgotPasswordFormType>({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
-    resolver: zodResolver(SignInSchema),
+    resolver: zodResolver(ForgotPasswordSchema),
     defaultValues: {
       email: "",
-      password: "",
     },
   });
 
-  const onSubmit = async (values: AuthType) => {
-    const result = await signInAction(values);
+  const onSubmit = async (values: ForgotPasswordFormType) => {
+    const result = await forgotPasswordAction(values);
     if (!result.success) {
       console.error(result.error.name);
       form.setFocus("email");
       toast.error(result.error.message);
     } else {
-      router.replace(url);
+      toast.success(`Reset link was sent to ${values.email}`);
     }
   };
 
@@ -55,9 +46,9 @@ export default function SignInForm() {
           control={form.control}
           name="email"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-sm text-primary">
-                Email address
+            <FormItem className="space-y-4">
+              <FormLabel className="text-lg font-bold text-primary">
+                Enter your email to reset password.
               </FormLabel>
               <FormControl>
                 <Input
@@ -86,7 +77,6 @@ export default function SignInForm() {
             </FormItem>
           )}
         />
-        <FormPassword />
         <Button
           disabled={form.formState.isSubmitting}
           className="w-full bg-gradient-to-tr from-blue-400 to-blue-700 transition-colors duration-500 hover:from-blue-400 hover:to-transparent"

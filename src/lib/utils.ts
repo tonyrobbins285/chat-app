@@ -1,7 +1,7 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { AnyZodObject } from "zod";
-import { ClientError, InvalidCredentialsError } from "@/lib/errors";
+import { ClientError, InvalidCredentialsError } from "@/lib/errors/client";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

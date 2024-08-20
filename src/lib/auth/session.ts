@@ -1,8 +1,10 @@
-"use server";
+import "server-only";
+
 import { createRefreshToken } from "@/data-access/token";
 import { cookies } from "next/headers";
-import { InternalServerError } from "@/lib/errors";
 import { generateToken, verifyToken } from "@/lib/auth/token";
+import { InternalServerError } from "@/lib/errors/server";
+import { SessionType } from "@/lib/types";
 
 export const createSession = async (userId: string) => {
   try {
@@ -41,12 +43,9 @@ export const getServerSession = async () => {
     }
 
     const token = authToken.split(" ")[1];
-    return await verifyToken(token, "ACCESS");
-    //  decoded =  {
-    //   userId: '',
-    //   iat: 1723222346,
-    //   exp: 1723222376
-    // }
+    const { userId } = await verifyToken<SessionType>(token, "ACCESS");
+
+    return { userId };
   } catch (error) {
     console.error(`Failed to get server session: `, error);
     throw new InternalServerError(`Could not get server session.`);

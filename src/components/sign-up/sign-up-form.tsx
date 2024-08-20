@@ -13,16 +13,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { cn, getErrorName } from "@/lib/utils";
 import FormPassword from "./form-password";
 import toast from "react-hot-toast";
-import { EmailInUseError } from "@/lib/errors";
 import { SignUpSchema } from "@/schemas/authSchema";
-import { SignUpType } from "@/types/authTypes";
 import { signUpAction } from "@/actions/sign-up";
+import { AuthType } from "@/lib/types";
+import { EmailInUseError } from "@/lib/errors/client";
 
 export default function SignUpForm() {
-  const form = useForm<SignUpType>({
+  const form = useForm<AuthType>({
     mode: "onSubmit",
     reValidateMode: "onSubmit",
     resolver: zodResolver(SignUpSchema),
@@ -32,11 +32,11 @@ export default function SignUpForm() {
     },
   });
 
-  const onSubmit = async (values: SignUpType) => {
+  const onSubmit = async (values: AuthType) => {
     const result = await signUpAction(values);
 
     if (!result.success) {
-      if (result.error.name === new EmailInUseError().name) {
+      if (result.error.name === getErrorName(EmailInUseError)) {
         form.setError(
           "email",
           { message: result.error.message },
@@ -44,12 +44,10 @@ export default function SignUpForm() {
         );
       } else {
         console.error(result.error.name);
-        toast.error(result.error.message, { duration: 10000 });
+        toast.error(result.error.message);
       }
     } else {
-      toast.success(`Verification link was sent to ${values.email}`, {
-        duration: 30000,
-      });
+      toast.success(`Verification link was sent to ${values.email}`);
     }
   };
 

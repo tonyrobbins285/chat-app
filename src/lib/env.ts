@@ -26,4 +26,8 @@ export const env = {
     "VERIFICATION_TOKEN_SECRET",
     process.env.VERIFICATION_TOKEN_SECRET,
   ),
+  RESET_TOKEN_SECRET: validateEnv(
+    "RESET_TOKEN_SECRET",
+    process.env.RESET_TOKEN_SECRET,
+  ),
 };

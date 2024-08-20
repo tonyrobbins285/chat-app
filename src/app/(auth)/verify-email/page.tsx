@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { InvalidTokenError } from "@/lib/errors";
+import { InvalidTokenError } from "@/lib/errors/client";
 import { verifyEmail } from "@/use-cases/auth";
 import Link from "next/link";
 

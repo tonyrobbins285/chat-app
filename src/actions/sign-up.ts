@@ -7,6 +7,6 @@ import { SignUpSchema } from "@/schemas/authSchema";
 import { signUp } from "@/use-cases/auth";
 
 export const signUpAction = handleAsyncAction(async (inputs: AuthType) => {
-  const validatedInputs = await validateInputs(inputs, SignUpSchema);
-  await signUp(validatedInputs);
-}, "sign up action");
+  await validateInputs(inputs, SignUpSchema);
+  await signUp(inputs);
+}, "signUpAction");

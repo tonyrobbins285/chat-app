@@ -1,7 +1,7 @@
 import "server-only";
 
-import { ClientError } from "@/lib/errors";
 import { isRedirectError } from "next/dist/client/components/redirect";
+import { ClientError } from "@/lib/errors/client";
 
 type AsyncActionFunction<T> = (inputs: T) => Promise<void>;
 
@@ -30,9 +30,8 @@ export const handleAsyncAction =
       if (isRedirectError(error)) {
         throw error;
       }
-
-      let message = "Internal Error. Please try again!";
-      let name = "InternalError";
+      let message = "Internal Server Error. Please try again!";
+      let name = "InternalServerError";
 
       if (error instanceof ClientError) {
         message = error.message;

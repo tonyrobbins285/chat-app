@@ -19,7 +19,3 @@ export const useAuthStore = create<AuthState>()((set) => ({
   setSession: (session) => set({ accessToken: session }),
   clearSession: () => set({ accessToken: null }),
 }));
-
-export function signIn() {
-  return useAuthStore((state) => state.setSession);
-}
